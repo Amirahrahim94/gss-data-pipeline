@@ -1,0 +1,401 @@
+﻿cut,year,variable,response_type,source_labels,count,year_records,percentage
+gss_cut_a_2016_2018,2016,wrkstat,no_answer,.n:  No answer,3,2867,0.1046
+gss_cut_a_2016_2018,2016,wrkstat,non_missing,,2864,2867,99.8954
+gss_cut_a_2016_2018,2016,evwork,inapplicable,.i:  Inapplicable,1841,2867,64.2135
+gss_cut_a_2016_2018,2016,evwork,no_answer,.n:  No answer,3,2867,0.1046
+gss_cut_a_2016_2018,2016,evwork,non_missing,,1023,2867,35.6819
+gss_cut_a_2016_2018,2016,indus10,inapplicable,.i:  Inapplicable,90,2867,3.1392
+gss_cut_a_2016_2018,2016,indus10,no_answer,.n:  No answer,37,2867,1.2905
+gss_cut_a_2016_2018,2016,indus10,non_missing,,2740,2867,95.5703
+gss_cut_a_2016_2018,2016,age,no_answer,.n:  No answer,10,2867,0.3488
+gss_cut_a_2016_2018,2016,age,non_missing,,2857,2867,99.6512
+gss_cut_a_2016_2018,2016,educ,dont_know,.d:  Do not Know/Cannot Choose,1,2867,0.0349
+gss_cut_a_2016_2018,2016,educ,no_answer,.n:  No answer,8,2867,0.279
+gss_cut_a_2016_2018,2016,educ,non_missing,,2858,2867,99.6861
+gss_cut_a_2016_2018,2016,sex,non_missing,,2867,2867,100.0
+gss_cut_a_2016_2018,2016,region,non_missing,,2867,2867,100.0
+gss_cut_a_2016_2018,2016,relig,dont_know,.d:  Do not Know/Cannot Choose,3,2867,0.1046
+gss_cut_a_2016_2018,2016,relig,no_answer,.n:  No answer,18,2867,0.6278
+gss_cut_a_2016_2018,2016,relig,non_missing,,2846,2867,99.2675
+gss_cut_a_2016_2018,2016,attend,dont_know,.d:  Do not Know/Cannot Choose,17,2867,0.593
+gss_cut_a_2016_2018,2016,attend,non_missing,,2850,2867,99.407
+gss_cut_a_2016_2018,2016,reliten,dont_know,.d:  Do not Know/Cannot Choose,4,2867,0.1395
+gss_cut_a_2016_2018,2016,reliten,inapplicable,.i:  Inapplicable,3,2867,0.1046
+gss_cut_a_2016_2018,2016,reliten,no_answer,.n:  No answer,23,2867,0.8022
+gss_cut_a_2016_2018,2016,reliten,non_missing,,2837,2867,98.9536
+gss_cut_a_2016_2018,2016,postlife,dont_know,.d:  Do not Know/Cannot Choose,271,2867,9.4524
+gss_cut_a_2016_2018,2016,postlife,no_answer,.n:  No answer,8,2867,0.279
+gss_cut_a_2016_2018,2016,postlife,non_missing,,2588,2867,90.2686
+gss_cut_a_2016_2018,2016,pray,dont_know,.d:  Do not Know/Cannot Choose,9,2867,0.3139
+gss_cut_a_2016_2018,2016,pray,no_answer,.n:  No answer,20,2867,0.6976
+gss_cut_a_2016_2018,2016,pray,non_missing,,2838,2867,98.9885
+gss_cut_a_2016_2018,2016,relig16,dont_know,.d:  Do not Know/Cannot Choose,10,2867,0.3488
+gss_cut_a_2016_2018,2016,relig16,no_answer,.n:  No answer,10,2867,0.3488
+gss_cut_a_2016_2018,2016,relig16,non_missing,,2847,2867,99.3024
+gss_cut_a_2016_2018,2016,satjob,dont_know,.d:  Do not Know/Cannot Choose,15,2867,0.5232
+gss_cut_a_2016_2018,2016,satjob,inapplicable,.i:  Inapplicable,1064,2867,37.112
+gss_cut_a_2016_2018,2016,satjob,no_answer,.n:  No answer,9,2867,0.3139
+gss_cut_a_2016_2018,2016,satjob,non_missing,,1779,2867,62.0509
+gss_cut_a_2016_2018,2016,news,inapplicable,.i:  Inapplicable,980,2867,34.1821
+gss_cut_a_2016_2018,2016,news,no_answer,.n:  No answer,2,2867,0.0698
+gss_cut_a_2016_2018,2016,news,non_missing,,1885,2867,65.7482
+gss_cut_a_2016_2018,2016,tvhours,dont_know,.d:  Do not Know/Cannot Choose,4,2867,0.1395
+gss_cut_a_2016_2018,2016,tvhours,inapplicable,.i:  Inapplicable,980,2867,34.1821
+gss_cut_a_2016_2018,2016,tvhours,non_missing,,1883,2867,65.6784
+gss_cut_a_2016_2018,2016,wwwhr,dont_know,.d:  Do not Know/Cannot Choose,2,2867,0.0698
+gss_cut_a_2016_2018,2016,wwwhr,inapplicable,.i:  Inapplicable,1274,2867,44.4367
+gss_cut_a_2016_2018,2016,wwwhr,no_answer,.n:  No answer,4,2867,0.1395
+gss_cut_a_2016_2018,2016,wwwhr,non_missing,,1587,2867,55.354
+gss_cut_a_2016_2018,2016,inttech,dont_know,.d:  Do not Know/Cannot Choose,1,2867,0.0349
+gss_cut_a_2016_2018,2016,inttech,inapplicable,.i:  Inapplicable,1477,2867,51.5173
+gss_cut_a_2016_2018,2016,inttech,no_answer,.n:  No answer,3,2867,0.1046
+gss_cut_a_2016_2018,2016,inttech,non_missing,,1386,2867,48.3432
+gss_cut_a_2016_2018,2016,ballot,non_missing,,2867,2867,100.0
+gss_cut_a_2016_2018,2016,wtssnrps,non_missing,,2867,2867,100.0
+gss_cut_a_2016_2018,2018,wrkstat,no_answer,.n:  No answer,2,2348,0.0852
+gss_cut_a_2016_2018,2018,wrkstat,non_missing,,2346,2348,99.9148
+gss_cut_a_2016_2018,2018,evwork,inapplicable,.i:  Inapplicable,1530,2348,65.1618
+gss_cut_a_2016_2018,2018,evwork,no_answer,.n:  No answer,2,2348,0.0852
+gss_cut_a_2016_2018,2018,evwork,non_missing,,816,2348,34.753
+gss_cut_a_2016_2018,2018,indus10,inapplicable,.i:  Inapplicable,77,2348,3.2794
+gss_cut_a_2016_2018,2018,indus10,no_answer,.n:  No answer,16,2348,0.6814
+gss_cut_a_2016_2018,2018,indus10,non_missing,,2255,2348,96.0392
+gss_cut_a_2016_2018,2018,age,no_answer,.n:  No answer,7,2348,0.2981
+gss_cut_a_2016_2018,2018,age,non_missing,,2341,2348,99.7019
+gss_cut_a_2016_2018,2018,educ,dont_know,.d:  Do not Know/Cannot Choose,2,2348,0.0852
+gss_cut_a_2016_2018,2018,educ,no_answer,.n:  No answer,1,2348,0.0426
+gss_cut_a_2016_2018,2018,educ,non_missing,,2345,2348,99.8722
+gss_cut_a_2016_2018,2018,sex,non_missing,,2348,2348,100.0
+gss_cut_a_2016_2018,2018,region,non_missing,,2348,2348,100.0
+gss_cut_a_2016_2018,2018,relig,dont_know,.d:  Do not Know/Cannot Choose,5,2348,0.2129
+gss_cut_a_2016_2018,2018,relig,no_answer,.n:  No answer,16,2348,0.6814
+gss_cut_a_2016_2018,2018,relig,non_missing,,2327,2348,99.1056
+gss_cut_a_2016_2018,2018,attend,dont_know,.d:  Do not Know/Cannot Choose,16,2348,0.6814
+gss_cut_a_2016_2018,2018,attend,non_missing,,2332,2348,99.3186
+gss_cut_a_2016_2018,2018,reliten,dont_know,.d:  Do not Know/Cannot Choose,7,2348,0.2981
+gss_cut_a_2016_2018,2018,reliten,inapplicable,.i:  Inapplicable,5,2348,0.2129
+gss_cut_a_2016_2018,2018,reliten,no_answer,.n:  No answer,22,2348,0.937
+gss_cut_a_2016_2018,2018,reliten,non_missing,,2314,2348,98.552
+gss_cut_a_2016_2018,2018,postlife,dont_know,.d:  Do not Know/Cannot Choose,216,2348,9.1993
+gss_cut_a_2016_2018,2018,postlife,no_answer,.n:  No answer,9,2348,0.3833
+gss_cut_a_2016_2018,2018,postlife,non_missing,,2123,2348,90.4174
+gss_cut_a_2016_2018,2018,pray,dont_know,.d:  Do not Know/Cannot Choose,5,2348,0.2129
+gss_cut_a_2016_2018,2018,pray,no_answer,.n:  No answer,10,2348,0.4259
+gss_cut_a_2016_2018,2018,pray,non_missing,,2333,2348,99.3612
+gss_cut_a_2016_2018,2018,relig16,dont_know,.d:  Do not Know/Cannot Choose,9,2348,0.3833
+gss_cut_a_2016_2018,2018,relig16,no_answer,.n:  No answer,7,2348,0.2981
+gss_cut_a_2016_2018,2018,relig16,non_missing,,2332,2348,99.3186
+gss_cut_a_2016_2018,2018,satjob,dont_know,.d:  Do not Know/Cannot Choose,8,2348,0.3407
+gss_cut_a_2016_2018,2018,satjob,inapplicable,.i:  Inapplicable,574,2348,24.4463
+gss_cut_a_2016_2018,2018,satjob,no_answer,.n:  No answer,27,2348,1.1499
+gss_cut_a_2016_2018,2018,satjob,non_missing,,1739,2348,74.063
+gss_cut_a_2016_2018,2018,news,inapplicable,.i:  Inapplicable,789,2348,33.6031
+gss_cut_a_2016_2018,2018,news,non_missing,,1559,2348,66.3969
+gss_cut_a_2016_2018,2018,tvhours,dont_know,.d:  Do not Know/Cannot Choose,3,2348,0.1278
+gss_cut_a_2016_2018,2018,tvhours,inapplicable,.i:  Inapplicable,789,2348,33.6031
+gss_cut_a_2016_2018,2018,tvhours,no_answer,.n:  No answer,1,2348,0.0426
+gss_cut_a_2016_2018,2018,tvhours,non_missing,,1555,2348,66.2266
+gss_cut_a_2016_2018,2018,wwwhr,dont_know,.d:  Do not Know/Cannot Choose,4,2348,0.1704
+gss_cut_a_2016_2018,2018,wwwhr,inapplicable,.i:  Inapplicable,981,2348,41.7802
+gss_cut_a_2016_2018,2018,wwwhr,no_answer,.n:  No answer,1,2348,0.0426
+gss_cut_a_2016_2018,2018,wwwhr,non_missing,,1362,2348,58.0068
+gss_cut_a_2016_2018,2018,inttech,dont_know,.d:  Do not Know/Cannot Choose,2,2348,0.0852
+gss_cut_a_2016_2018,2018,inttech,inapplicable,.i:  Inapplicable,1173,2348,49.9574
+gss_cut_a_2016_2018,2018,inttech,non_missing,,1173,2348,49.9574
+gss_cut_a_2016_2018,2018,ballot,non_missing,,2348,2348,100.0
+gss_cut_a_2016_2018,2018,wtssnrps,non_missing,,2348,2348,100.0
+gss_cut_b_2018_2022,2018,wrkstat,no_answer,.n:  No answer,2,2348,0.0852
+gss_cut_b_2018_2022,2018,wrkstat,non_missing,,2346,2348,99.9148
+gss_cut_b_2018_2022,2018,evwork,inapplicable,.i:  Inapplicable,1530,2348,65.1618
+gss_cut_b_2018_2022,2018,evwork,no_answer,.n:  No answer,2,2348,0.0852
+gss_cut_b_2018_2022,2018,evwork,non_missing,,816,2348,34.753
+gss_cut_b_2018_2022,2018,indus10,inapplicable,.i:  Inapplicable,77,2348,3.2794
+gss_cut_b_2018_2022,2018,indus10,no_answer,.n:  No answer,16,2348,0.6814
+gss_cut_b_2018_2022,2018,indus10,non_missing,,2255,2348,96.0392
+gss_cut_b_2018_2022,2018,age,no_answer,.n:  No answer,7,2348,0.2981
+gss_cut_b_2018_2022,2018,age,non_missing,,2341,2348,99.7019
+gss_cut_b_2018_2022,2018,educ,dont_know,.d:  Do not Know/Cannot Choose,2,2348,0.0852
+gss_cut_b_2018_2022,2018,educ,no_answer,.n:  No answer,1,2348,0.0426
+gss_cut_b_2018_2022,2018,educ,non_missing,,2345,2348,99.8722
+gss_cut_b_2018_2022,2018,sex,non_missing,,2348,2348,100.0
+gss_cut_b_2018_2022,2018,region,non_missing,,2348,2348,100.0
+gss_cut_b_2018_2022,2018,relig,dont_know,.d:  Do not Know/Cannot Choose,5,2348,0.2129
+gss_cut_b_2018_2022,2018,relig,no_answer,.n:  No answer,16,2348,0.6814
+gss_cut_b_2018_2022,2018,relig,non_missing,,2327,2348,99.1056
+gss_cut_b_2018_2022,2018,attend,dont_know,.d:  Do not Know/Cannot Choose,16,2348,0.6814
+gss_cut_b_2018_2022,2018,attend,non_missing,,2332,2348,99.3186
+gss_cut_b_2018_2022,2018,reliten,dont_know,.d:  Do not Know/Cannot Choose,7,2348,0.2981
+gss_cut_b_2018_2022,2018,reliten,inapplicable,.i:  Inapplicable,5,2348,0.2129
+gss_cut_b_2018_2022,2018,reliten,no_answer,.n:  No answer,22,2348,0.937
+gss_cut_b_2018_2022,2018,reliten,non_missing,,2314,2348,98.552
+gss_cut_b_2018_2022,2018,postlife,dont_know,.d:  Do not Know/Cannot Choose,216,2348,9.1993
+gss_cut_b_2018_2022,2018,postlife,no_answer,.n:  No answer,9,2348,0.3833
+gss_cut_b_2018_2022,2018,postlife,non_missing,,2123,2348,90.4174
+gss_cut_b_2018_2022,2018,pray,dont_know,.d:  Do not Know/Cannot Choose,5,2348,0.2129
+gss_cut_b_2018_2022,2018,pray,no_answer,.n:  No answer,10,2348,0.4259
+gss_cut_b_2018_2022,2018,pray,non_missing,,2333,2348,99.3612
+gss_cut_b_2018_2022,2018,relig16,dont_know,.d:  Do not Know/Cannot Choose,9,2348,0.3833
+gss_cut_b_2018_2022,2018,relig16,no_answer,.n:  No answer,7,2348,0.2981
+gss_cut_b_2018_2022,2018,relig16,non_missing,,2332,2348,99.3186
+gss_cut_b_2018_2022,2018,satjob,dont_know,.d:  Do not Know/Cannot Choose,8,2348,0.3407
+gss_cut_b_2018_2022,2018,satjob,inapplicable,.i:  Inapplicable,574,2348,24.4463
+gss_cut_b_2018_2022,2018,satjob,no_answer,.n:  No answer,27,2348,1.1499
+gss_cut_b_2018_2022,2018,satjob,non_missing,,1739,2348,74.063
+gss_cut_b_2018_2022,2018,news,inapplicable,.i:  Inapplicable,789,2348,33.6031
+gss_cut_b_2018_2022,2018,news,non_missing,,1559,2348,66.3969
+gss_cut_b_2018_2022,2018,tvhours,dont_know,.d:  Do not Know/Cannot Choose,3,2348,0.1278
+gss_cut_b_2018_2022,2018,tvhours,inapplicable,.i:  Inapplicable,789,2348,33.6031
+gss_cut_b_2018_2022,2018,tvhours,no_answer,.n:  No answer,1,2348,0.0426
+gss_cut_b_2018_2022,2018,tvhours,non_missing,,1555,2348,66.2266
+gss_cut_b_2018_2022,2018,wwwhr,dont_know,.d:  Do not Know/Cannot Choose,4,2348,0.1704
+gss_cut_b_2018_2022,2018,wwwhr,inapplicable,.i:  Inapplicable,981,2348,41.7802
+gss_cut_b_2018_2022,2018,wwwhr,no_answer,.n:  No answer,1,2348,0.0426
+gss_cut_b_2018_2022,2018,wwwhr,non_missing,,1362,2348,58.0068
+gss_cut_b_2018_2022,2018,inttech,dont_know,.d:  Do not Know/Cannot Choose,2,2348,0.0852
+gss_cut_b_2018_2022,2018,inttech,inapplicable,.i:  Inapplicable,1173,2348,49.9574
+gss_cut_b_2018_2022,2018,inttech,non_missing,,1173,2348,49.9574
+gss_cut_b_2018_2022,2018,ballot,non_missing,,2348,2348,100.0
+gss_cut_b_2018_2022,2018,wtssnrps,non_missing,,2348,2348,100.0
+gss_cut_b_2018_2022,2022,wrkstat,dont_know,.d:  Do not Know/Cannot Choose,1,3544,0.0282
+gss_cut_b_2018_2022,2022,wrkstat,no_answer,.n:  No answer,3,3544,0.0847
+gss_cut_b_2018_2022,2022,wrkstat,non_missing,,3536,3544,99.7743
+gss_cut_b_2018_2022,2022,wrkstat,skipped_on_web,.s:  Skipped on Web,4,3544,0.1129
+gss_cut_b_2018_2022,2022,evwork,inapplicable,.i:  Inapplicable,2212,3544,62.4153
+gss_cut_b_2018_2022,2022,evwork,no_answer,.n:  No answer,3,3544,0.0847
+gss_cut_b_2018_2022,2022,evwork,non_missing,,1324,3544,37.3589
+gss_cut_b_2018_2022,2022,evwork,skipped_on_web,.s:  Skipped on Web,5,3544,0.1411
+gss_cut_b_2018_2022,2022,indus10,inapplicable,.i:  Inapplicable,154,3544,4.3454
+gss_cut_b_2018_2022,2022,indus10,no_answer,.n:  No answer,63,3544,1.7777
+gss_cut_b_2018_2022,2022,indus10,non_missing,,3322,3544,93.7359
+gss_cut_b_2018_2022,2022,indus10,skipped_on_web,.s:  Skipped on Web,5,3544,0.1411
+gss_cut_b_2018_2022,2022,age,no_answer,.n:  No answer,208,3544,5.8691
+gss_cut_b_2018_2022,2022,age,non_missing,,3336,3544,94.1309
+gss_cut_b_2018_2022,2022,educ,no_answer,.n:  No answer,20,3544,0.5643
+gss_cut_b_2018_2022,2022,educ,non_missing,,3524,3544,99.4357
+gss_cut_b_2018_2022,2022,sex,dont_know,.d:  Do not Know/Cannot Choose,8,3544,0.2257
+gss_cut_b_2018_2022,2022,sex,no_answer,.n:  No answer,9,3544,0.254
+gss_cut_b_2018_2022,2022,sex,non_missing,,3524,3544,99.4357
+gss_cut_b_2018_2022,2022,sex,skipped_on_web,.s:  Skipped on Web,3,3544,0.0847
+gss_cut_b_2018_2022,2022,region,non_missing,,3544,3544,100.0
+gss_cut_b_2018_2022,2022,relig,dont_know,.d:  Do not Know/Cannot Choose,20,3544,0.5643
+gss_cut_b_2018_2022,2022,relig,no_answer,.n:  No answer,32,3544,0.9029
+gss_cut_b_2018_2022,2022,relig,non_missing,,3483,3544,98.2788
+gss_cut_b_2018_2022,2022,relig,skipped_on_web,.s:  Skipped on Web,9,3544,0.254
+gss_cut_b_2018_2022,2022,attend,inapplicable,.i:  Inapplicable,2,3544,0.0564
+gss_cut_b_2018_2022,2022,attend,no_answer,.n:  No answer,24,3544,0.6772
+gss_cut_b_2018_2022,2022,attend,non_missing,,3509,3544,99.0124
+gss_cut_b_2018_2022,2022,attend,skipped_on_web,.s:  Skipped on Web,9,3544,0.254
+gss_cut_b_2018_2022,2022,reliten,dont_know,.d:  Do not Know/Cannot Choose,22,3544,0.6208
+gss_cut_b_2018_2022,2022,reliten,inapplicable,.i:  Inapplicable,1731,3544,48.8431
+gss_cut_b_2018_2022,2022,reliten,no_answer,.n:  No answer,33,3544,0.9312
+gss_cut_b_2018_2022,2022,reliten,non_missing,,1758,3544,49.605
+gss_cut_b_2018_2022,2022,postlife,dont_know,.d:  Do not Know/Cannot Choose,256,3544,7.2235
+gss_cut_b_2018_2022,2022,postlife,inapplicable,.i:  Inapplicable,1707,3544,48.1659
+gss_cut_b_2018_2022,2022,postlife,no_answer,.n:  No answer,5,3544,0.1411
+gss_cut_b_2018_2022,2022,postlife,non_missing,,1576,3544,44.4695
+gss_cut_b_2018_2022,2022,pray,dont_know,.d:  Do not Know/Cannot Choose,12,3544,0.3386
+gss_cut_b_2018_2022,2022,pray,no_answer,.n:  No answer,17,3544,0.4797
+gss_cut_b_2018_2022,2022,pray,non_missing,,3501,3544,98.7867
+gss_cut_b_2018_2022,2022,pray,skipped_on_web,.s:  Skipped on Web,14,3544,0.395
+gss_cut_b_2018_2022,2022,relig16,dont_know,.d:  Do not Know/Cannot Choose,20,3544,0.5643
+gss_cut_b_2018_2022,2022,relig16,inapplicable,.i:  Inapplicable,2,3544,0.0564
+gss_cut_b_2018_2022,2022,relig16,no_answer,.n:  No answer,18,3544,0.5079
+gss_cut_b_2018_2022,2022,relig16,non_missing,,3484,3544,98.307
+gss_cut_b_2018_2022,2022,relig16,skipped_on_web,.s:  Skipped on Web,20,3544,0.5643
+gss_cut_b_2018_2022,2022,satjob,dont_know,.d:  Do not Know/Cannot Choose,7,3544,0.1975
+gss_cut_b_2018_2022,2022,satjob,inapplicable,.i:  Inapplicable,1053,3544,29.7122
+gss_cut_b_2018_2022,2022,satjob,no_answer,.n:  No answer,8,3544,0.2257
+gss_cut_b_2018_2022,2022,satjob,non_missing,,2463,3544,69.4977
+gss_cut_b_2018_2022,2022,satjob,skipped_on_web,.s:  Skipped on Web,13,3544,0.3668
+gss_cut_b_2018_2022,2022,news,dont_know,.d:  Do not Know/Cannot Choose,4,3544,0.1129
+gss_cut_b_2018_2022,2022,news,inapplicable,.i:  Inapplicable,1168,3544,32.9571
+gss_cut_b_2018_2022,2022,news,no_answer,.n:  No answer,1,3544,0.0282
+gss_cut_b_2018_2022,2022,news,non_missing,,2365,3544,66.7325
+gss_cut_b_2018_2022,2022,news,skipped_on_web,.s:  Skipped on Web,6,3544,0.1693
+gss_cut_b_2018_2022,2022,tvhours,dont_know,.d:  Do not Know/Cannot Choose,12,3544,0.3386
+gss_cut_b_2018_2022,2022,tvhours,inapplicable,.i:  Inapplicable,1168,3544,32.9571
+gss_cut_b_2018_2022,2022,tvhours,no_answer,.n:  No answer,3,3544,0.0847
+gss_cut_b_2018_2022,2022,tvhours,non_missing,,2352,3544,66.3657
+gss_cut_b_2018_2022,2022,tvhours,skipped_on_web,.s:  Skipped on Web,9,3544,0.254
+gss_cut_b_2018_2022,2022,wwwhr,dont_know,.d:  Do not Know/Cannot Choose,20,3544,0.5643
+gss_cut_b_2018_2022,2022,wwwhr,inapplicable,.i:  Inapplicable,1271,3544,35.8634
+gss_cut_b_2018_2022,2022,wwwhr,no_answer,.n:  No answer,14,3544,0.395
+gss_cut_b_2018_2022,2022,wwwhr,non_missing,,2239,3544,63.1772
+gss_cut_b_2018_2022,2022,inttech,non_missing,,0,3544,0.0
+gss_cut_b_2018_2022,2022,inttech,unavailable_that_year,.y:  Not available in this year,3544,3544,100.0
+gss_cut_b_2018_2022,2022,ballot,non_missing,,3544,3544,100.0
+gss_cut_b_2018_2022,2022,wtssnrps,non_missing,,3544,3544,100.0
+combined_distinct,2016,wrkstat,no_answer,.n:  No answer,3,2867,0.1046
+combined_distinct,2016,wrkstat,non_missing,,2864,2867,99.8954
+combined_distinct,2016,evwork,inapplicable,.i:  Inapplicable,1841,2867,64.2135
+combined_distinct,2016,evwork,no_answer,.n:  No answer,3,2867,0.1046
+combined_distinct,2016,evwork,non_missing,,1023,2867,35.6819
+combined_distinct,2016,indus10,inapplicable,.i:  Inapplicable,90,2867,3.1392
+combined_distinct,2016,indus10,no_answer,.n:  No answer,37,2867,1.2905
+combined_distinct,2016,indus10,non_missing,,2740,2867,95.5703
+combined_distinct,2016,age,no_answer,.n:  No answer,10,2867,0.3488
+combined_distinct,2016,age,non_missing,,2857,2867,99.6512
+combined_distinct,2016,educ,dont_know,.d:  Do not Know/Cannot Choose,1,2867,0.0349
+combined_distinct,2016,educ,no_answer,.n:  No answer,8,2867,0.279
+combined_distinct,2016,educ,non_missing,,2858,2867,99.6861
+combined_distinct,2016,sex,non_missing,,2867,2867,100.0
+combined_distinct,2016,region,non_missing,,2867,2867,100.0
+combined_distinct,2016,relig,dont_know,.d:  Do not Know/Cannot Choose,3,2867,0.1046
+combined_distinct,2016,relig,no_answer,.n:  No answer,18,2867,0.6278
+combined_distinct,2016,relig,non_missing,,2846,2867,99.2675
+combined_distinct,2016,attend,dont_know,.d:  Do not Know/Cannot Choose,17,2867,0.593
+combined_distinct,2016,attend,non_missing,,2850,2867,99.407
+combined_distinct,2016,reliten,dont_know,.d:  Do not Know/Cannot Choose,4,2867,0.1395
+combined_distinct,2016,reliten,inapplicable,.i:  Inapplicable,3,2867,0.1046
+combined_distinct,2016,reliten,no_answer,.n:  No answer,23,2867,0.8022
+combined_distinct,2016,reliten,non_missing,,2837,2867,98.9536
+combined_distinct,2016,postlife,dont_know,.d:  Do not Know/Cannot Choose,271,2867,9.4524
+combined_distinct,2016,postlife,no_answer,.n:  No answer,8,2867,0.279
+combined_distinct,2016,postlife,non_missing,,2588,2867,90.2686
+combined_distinct,2016,pray,dont_know,.d:  Do not Know/Cannot Choose,9,2867,0.3139
+combined_distinct,2016,pray,no_answer,.n:  No answer,20,2867,0.6976
+combined_distinct,2016,pray,non_missing,,2838,2867,98.9885
+combined_distinct,2016,relig16,dont_know,.d:  Do not Know/Cannot Choose,10,2867,0.3488
+combined_distinct,2016,relig16,no_answer,.n:  No answer,10,2867,0.3488
+combined_distinct,2016,relig16,non_missing,,2847,2867,99.3024
+combined_distinct,2016,satjob,dont_know,.d:  Do not Know/Cannot Choose,15,2867,0.5232
+combined_distinct,2016,satjob,inapplicable,.i:  Inapplicable,1064,2867,37.112
+combined_distinct,2016,satjob,no_answer,.n:  No answer,9,2867,0.3139
+combined_distinct,2016,satjob,non_missing,,1779,2867,62.0509
+combined_distinct,2016,news,inapplicable,.i:  Inapplicable,980,2867,34.1821
+combined_distinct,2016,news,no_answer,.n:  No answer,2,2867,0.0698
+combined_distinct,2016,news,non_missing,,1885,2867,65.7482
+combined_distinct,2016,tvhours,dont_know,.d:  Do not Know/Cannot Choose,4,2867,0.1395
+combined_distinct,2016,tvhours,inapplicable,.i:  Inapplicable,980,2867,34.1821
+combined_distinct,2016,tvhours,non_missing,,1883,2867,65.6784
+combined_distinct,2016,wwwhr,dont_know,.d:  Do not Know/Cannot Choose,2,2867,0.0698
+combined_distinct,2016,wwwhr,inapplicable,.i:  Inapplicable,1274,2867,44.4367
+combined_distinct,2016,wwwhr,no_answer,.n:  No answer,4,2867,0.1395
+combined_distinct,2016,wwwhr,non_missing,,1587,2867,55.354
+combined_distinct,2016,inttech,dont_know,.d:  Do not Know/Cannot Choose,1,2867,0.0349
+combined_distinct,2016,inttech,inapplicable,.i:  Inapplicable,1477,2867,51.5173
+combined_distinct,2016,inttech,no_answer,.n:  No answer,3,2867,0.1046
+combined_distinct,2016,inttech,non_missing,,1386,2867,48.3432
+combined_distinct,2016,ballot,non_missing,,2867,2867,100.0
+combined_distinct,2016,wtssnrps,non_missing,,2867,2867,100.0
+combined_distinct,2018,wrkstat,no_answer,.n:  No answer,2,2348,0.0852
+combined_distinct,2018,wrkstat,non_missing,,2346,2348,99.9148
+combined_distinct,2018,evwork,inapplicable,.i:  Inapplicable,1530,2348,65.1618
+combined_distinct,2018,evwork,no_answer,.n:  No answer,2,2348,0.0852
+combined_distinct,2018,evwork,non_missing,,816,2348,34.753
+combined_distinct,2018,indus10,inapplicable,.i:  Inapplicable,77,2348,3.2794
+combined_distinct,2018,indus10,no_answer,.n:  No answer,16,2348,0.6814
+combined_distinct,2018,indus10,non_missing,,2255,2348,96.0392
+combined_distinct,2018,age,no_answer,.n:  No answer,7,2348,0.2981
+combined_distinct,2018,age,non_missing,,2341,2348,99.7019
+combined_distinct,2018,educ,dont_know,.d:  Do not Know/Cannot Choose,2,2348,0.0852
+combined_distinct,2018,educ,no_answer,.n:  No answer,1,2348,0.0426
+combined_distinct,2018,educ,non_missing,,2345,2348,99.8722
+combined_distinct,2018,sex,non_missing,,2348,2348,100.0
+combined_distinct,2018,region,non_missing,,2348,2348,100.0
+combined_distinct,2018,relig,dont_know,.d:  Do not Know/Cannot Choose,5,2348,0.2129
+combined_distinct,2018,relig,no_answer,.n:  No answer,16,2348,0.6814
+combined_distinct,2018,relig,non_missing,,2327,2348,99.1056
+combined_distinct,2018,attend,dont_know,.d:  Do not Know/Cannot Choose,16,2348,0.6814
+combined_distinct,2018,attend,non_missing,,2332,2348,99.3186
+combined_distinct,2018,reliten,dont_know,.d:  Do not Know/Cannot Choose,7,2348,0.2981
+combined_distinct,2018,reliten,inapplicable,.i:  Inapplicable,5,2348,0.2129
+combined_distinct,2018,reliten,no_answer,.n:  No answer,22,2348,0.937
+combined_distinct,2018,reliten,non_missing,,2314,2348,98.552
+combined_distinct,2018,postlife,dont_know,.d:  Do not Know/Cannot Choose,216,2348,9.1993
+combined_distinct,2018,postlife,no_answer,.n:  No answer,9,2348,0.3833
+combined_distinct,2018,postlife,non_missing,,2123,2348,90.4174
+combined_distinct,2018,pray,dont_know,.d:  Do not Know/Cannot Choose,5,2348,0.2129
+combined_distinct,2018,pray,no_answer,.n:  No answer,10,2348,0.4259
+combined_distinct,2018,pray,non_missing,,2333,2348,99.3612
+combined_distinct,2018,relig16,dont_know,.d:  Do not Know/Cannot Choose,9,2348,0.3833
+combined_distinct,2018,relig16,no_answer,.n:  No answer,7,2348,0.2981
+combined_distinct,2018,relig16,non_missing,,2332,2348,99.3186
+combined_distinct,2018,satjob,dont_know,.d:  Do not Know/Cannot Choose,8,2348,0.3407
+combined_distinct,2018,satjob,inapplicable,.i:  Inapplicable,574,2348,24.4463
+combined_distinct,2018,satjob,no_answer,.n:  No answer,27,2348,1.1499
+combined_distinct,2018,satjob,non_missing,,1739,2348,74.063
+combined_distinct,2018,news,inapplicable,.i:  Inapplicable,789,2348,33.6031
+combined_distinct,2018,news,non_missing,,1559,2348,66.3969
+combined_distinct,2018,tvhours,dont_know,.d:  Do not Know/Cannot Choose,3,2348,0.1278
+combined_distinct,2018,tvhours,inapplicable,.i:  Inapplicable,789,2348,33.6031
+combined_distinct,2018,tvhours,no_answer,.n:  No answer,1,2348,0.0426
+combined_distinct,2018,tvhours,non_missing,,1555,2348,66.2266
+combined_distinct,2018,wwwhr,dont_know,.d:  Do not Know/Cannot Choose,4,2348,0.1704
+combined_distinct,2018,wwwhr,inapplicable,.i:  Inapplicable,981,2348,41.7802
+combined_distinct,2018,wwwhr,no_answer,.n:  No answer,1,2348,0.0426
+combined_distinct,2018,wwwhr,non_missing,,1362,2348,58.0068
+combined_distinct,2018,inttech,dont_know,.d:  Do not Know/Cannot Choose,2,2348,0.0852
+combined_distinct,2018,inttech,inapplicable,.i:  Inapplicable,1173,2348,49.9574
+combined_distinct,2018,inttech,non_missing,,1173,2348,49.9574
+combined_distinct,2018,ballot,non_missing,,2348,2348,100.0
+combined_distinct,2018,wtssnrps,non_missing,,2348,2348,100.0
+combined_distinct,2022,wrkstat,dont_know,.d:  Do not Know/Cannot Choose,1,3544,0.0282
+combined_distinct,2022,wrkstat,no_answer,.n:  No answer,3,3544,0.0847
+combined_distinct,2022,wrkstat,non_missing,,3536,3544,99.7743
+combined_distinct,2022,wrkstat,skipped_on_web,.s:  Skipped on Web,4,3544,0.1129
+combined_distinct,2022,evwork,inapplicable,.i:  Inapplicable,2212,3544,62.4153
+combined_distinct,2022,evwork,no_answer,.n:  No answer,3,3544,0.0847
+combined_distinct,2022,evwork,non_missing,,1324,3544,37.3589
+combined_distinct,2022,evwork,skipped_on_web,.s:  Skipped on Web,5,3544,0.1411
+combined_distinct,2022,indus10,inapplicable,.i:  Inapplicable,154,3544,4.3454
+combined_distinct,2022,indus10,no_answer,.n:  No answer,63,3544,1.7777
+combined_distinct,2022,indus10,non_missing,,3322,3544,93.7359
+combined_distinct,2022,indus10,skipped_on_web,.s:  Skipped on Web,5,3544,0.1411
+combined_distinct,2022,age,no_answer,.n:  No answer,208,3544,5.8691
+combined_distinct,2022,age,non_missing,,3336,3544,94.1309
+combined_distinct,2022,educ,no_answer,.n:  No answer,20,3544,0.5643
+combined_distinct,2022,educ,non_missing,,3524,3544,99.4357
+combined_distinct,2022,sex,dont_know,.d:  Do not Know/Cannot Choose,8,3544,0.2257
+combined_distinct,2022,sex,no_answer,.n:  No answer,9,3544,0.254
+combined_distinct,2022,sex,non_missing,,3524,3544,99.4357
+combined_distinct,2022,sex,skipped_on_web,.s:  Skipped on Web,3,3544,0.0847
+combined_distinct,2022,region,non_missing,,3544,3544,100.0
+combined_distinct,2022,relig,dont_know,.d:  Do not Know/Cannot Choose,20,3544,0.5643
+combined_distinct,2022,relig,no_answer,.n:  No answer,32,3544,0.9029
+combined_distinct,2022,relig,non_missing,,3483,3544,98.2788
+combined_distinct,2022,relig,skipped_on_web,.s:  Skipped on Web,9,3544,0.254
+combined_distinct,2022,attend,inapplicable,.i:  Inapplicable,2,3544,0.0564
+combined_distinct,2022,attend,no_answer,.n:  No answer,24,3544,0.6772
+combined_distinct,2022,attend,non_missing,,3509,3544,99.0124
+combined_distinct,2022,attend,skipped_on_web,.s:  Skipped on Web,9,3544,0.254
+combined_distinct,2022,reliten,dont_know,.d:  Do not Know/Cannot Choose,22,3544,0.6208
+combined_distinct,2022,reliten,inapplicable,.i:  Inapplicable,1731,3544,48.8431
+combined_distinct,2022,reliten,no_answer,.n:  No answer,33,3544,0.9312
+combined_distinct,2022,reliten,non_missing,,1758,3544,49.605
+combined_distinct,2022,postlife,dont_know,.d:  Do not Know/Cannot Choose,256,3544,7.2235
+combined_distinct,2022,postlife,inapplicable,.i:  Inapplicable,1707,3544,48.1659
+combined_distinct,2022,postlife,no_answer,.n:  No answer,5,3544,0.1411
+combined_distinct,2022,postlife,non_missing,,1576,3544,44.4695
+combined_distinct,2022,pray,dont_know,.d:  Do not Know/Cannot Choose,12,3544,0.3386
+combined_distinct,2022,pray,no_answer,.n:  No answer,17,3544,0.4797
+combined_distinct,2022,pray,non_missing,,3501,3544,98.7867
+combined_distinct,2022,pray,skipped_on_web,.s:  Skipped on Web,14,3544,0.395
+combined_distinct,2022,relig16,dont_know,.d:  Do not Know/Cannot Choose,20,3544,0.5643
+combined_distinct,2022,relig16,inapplicable,.i:  Inapplicable,2,3544,0.0564
+combined_distinct,2022,relig16,no_answer,.n:  No answer,18,3544,0.5079
+combined_distinct,2022,relig16,non_missing,,3484,3544,98.307
+combined_distinct,2022,relig16,skipped_on_web,.s:  Skipped on Web,20,3544,0.5643
+combined_distinct,2022,satjob,dont_know,.d:  Do not Know/Cannot Choose,7,3544,0.1975
+combined_distinct,2022,satjob,inapplicable,.i:  Inapplicable,1053,3544,29.7122
+combined_distinct,2022,satjob,no_answer,.n:  No answer,8,3544,0.2257
+combined_distinct,2022,satjob,non_missing,,2463,3544,69.4977
+combined_distinct,2022,satjob,skipped_on_web,.s:  Skipped on Web,13,3544,0.3668
+combined_distinct,2022,news,dont_know,.d:  Do not Know/Cannot Choose,4,3544,0.1129
+combined_distinct,2022,news,inapplicable,.i:  Inapplicable,1168,3544,32.9571
+combined_distinct,2022,news,no_answer,.n:  No answer,1,3544,0.0282
+combined_distinct,2022,news,non_missing,,2365,3544,66.7325
+combined_distinct,2022,news,skipped_on_web,.s:  Skipped on Web,6,3544,0.1693
+combined_distinct,2022,tvhours,dont_know,.d:  Do not Know/Cannot Choose,12,3544,0.3386
+combined_distinct,2022,tvhours,inapplicable,.i:  Inapplicable,1168,3544,32.9571
+combined_distinct,2022,tvhours,no_answer,.n:  No answer,3,3544,0.0847
+combined_distinct,2022,tvhours,non_missing,,2352,3544,66.3657
+combined_distinct,2022,tvhours,skipped_on_web,.s:  Skipped on Web,9,3544,0.254
+combined_distinct,2022,wwwhr,dont_know,.d:  Do not Know/Cannot Choose,20,3544,0.5643
+combined_distinct,2022,wwwhr,inapplicable,.i:  Inapplicable,1271,3544,35.8634
+combined_distinct,2022,wwwhr,no_answer,.n:  No answer,14,3544,0.395
+combined_distinct,2022,wwwhr,non_missing,,2239,3544,63.1772
+combined_distinct,2022,inttech,non_missing,,0,3544,0.0
+combined_distinct,2022,inttech,unavailable_that_year,.y:  Not available in this year,3544,3544,100.0
+combined_distinct,2022,ballot,non_missing,,3544,3544,100.0
+combined_distinct,2022,wtssnrps,non_missing,,3544,3544,100.0
