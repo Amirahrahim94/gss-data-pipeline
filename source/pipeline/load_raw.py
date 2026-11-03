@@ -20,11 +20,11 @@ To keep one identity across renames, map the file name to a stable id in the con
 ("extract_ids": {"file name": "id"}); rows and the log are then keyed by that id.
 
 A schema change (different columns from the loaded table) is rejected. To apply
-one, rebuild the raw database from the source files: delete the database file and
-run again. There is deliberately no in-place refresh that could destroy a usable
+one, preserve the old database and rebuild from all source files into a new
+database path. There is deliberately no in-place refresh that could destroy a usable
 table if it failed part-way.
 
-Evidence and metadata left behind: tables raw.load_log, raw.extract_metadata (one row per file per run) and the text
+Evidence: raw.load_log (one row per file per run), raw.extract_metadata (current metadata per extract), and the text
 log logs/pipeline.log (run id on every line, tracebacks included).
 
 Settings: GSS_DB_PATH (database file) and GSS_LOG_DIR (log folder) may be set as
@@ -34,6 +34,7 @@ Usage:  python source/pipeline/load_raw.py [--raw-dir D] [--config F] [--db F]
 """
 import argparse
 import copy
+import csv
 import hashlib
 import json
 import logging
@@ -41,6 +42,7 @@ import os
 import re
 import sys
 import time
+import tempfile
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -94,6 +96,31 @@ def setup(con):
         started_at timestamp, finished_at timestamp)""")
     con.execute("""create table if not exists raw.extract_metadata (
         extract_id varchar primary key, metadata_json varchar, run_id varchar, loaded_at timestamp)""")
+
+
+def insert_rows(con, table, names, rows):
+    """Bulk insert validated rows inside the caller's existing transaction.
+
+    Python 3.12's QUOTE_NOTNULL writes NULL as unquoted empty, and all other
+    values (including an empty string) as quoted text. DuckDB is told not to
+    convert quoted empty values to NULL and not to infer column types.
+    The temporary file is closed before DuckDB opens it (required on Windows).
+    """
+    if not rows:
+        return
+    columns = ", ".join(quote(c) for c in names)
+    # quote() also validates identifiers before they enter the SQL type map.
+    types = "{" + ", ".join(f"'{c}': 'VARCHAR'" for c in names) + "}"
+    with tempfile.TemporaryDirectory(prefix="gss_bulk_") as directory:
+        path = Path(directory) / "validated.csv"
+        with path.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.writer(handle, quoting=csv.QUOTE_NOTNULL, lineterminator="\n")
+            writer.writerows(rows)
+        con.execute(
+            f"insert into raw.{quote(table)} ({columns}) "
+            f"select {columns} from read_csv(?, columns={types}, auto_detect=false, "
+            "header=false, delim=',', quote='\"', escape='\"', nullstr='', "
+            "allow_quoted_nulls=false, strict_mode=true)", [str(path)])
 
 
 def table_columns(con, table):
@@ -203,6 +230,7 @@ def load_file(con, path, cfg, run_id, log):
         extract = read_extract(path, keys, cfg.get("records_key", "data"), cfg.get("max_file_bytes"))
     except ExtractError as error:
         return fail(str(error))
+    steps = {"read": time.perf_counter() - timer}  # seconds per step, shown in the log line
     sha, result["read"] = extract.sha256, extract.record_count
     if extract.problems:
         return fail(f"{len(extract.problems)} bad record(s), file rejected; first: {extract.problems[0]}")
@@ -224,10 +252,12 @@ def load_file(con, path, cfg, run_id, log):
     if previously_loaded(con, extract_id, sha):
         log.warning("%s: same content was loaded before but the stored data is incomplete or "
                     "altered (or its metadata is missing); reloading it from the file", name)
+    mark = time.perf_counter()
     loaded_at = now_utc()
     values = [[extract_id, name, sha, record_hash(row, ordered), run_id, loaded_at]
               + [None if row[c] is None else str(row[c]) for c in ordered]
               for row in extract.rows.values()]
+    steps["prepare"] = time.perf_counter() - mark
     con.begin()
     try:
         existing = table_columns(con, table)
@@ -238,12 +268,13 @@ def load_file(con, path, cfg, run_id, log):
                         + ", primary key (extract_id, " + ", ".join(quote(k) for k in keys) + "))")
         elif set(existing) - set(META_COLUMNS) != set(ordered):
             raise LoadError("column set differs from the loaded table; to apply a schema change, "
-                            "rebuild the raw database from the source files (delete the database "
-                            "file and run again)")
+                            "preserve the old database and rebuild all source files into a new "
+                            "database path")
         con.execute(f"delete from raw.{quote(table)} where extract_id = ?", [extract_id])
-        marks = ", ".join("?" for _ in range(len(META_COLUMNS) + len(ordered)))
-        names = ", ".join(quote(c) for c in META_COLUMNS + ordered)
-        con.executemany(f"insert into raw.{quote(table)} ({names}) values ({marks})", values)
+        mark = time.perf_counter()
+        insert_rows(con, table, META_COLUMNS + ordered, values)
+        steps["insert"] = time.perf_counter() - mark
+        mark = time.perf_counter()
         con.execute("delete from raw.extract_metadata where extract_id = ?", [extract_id])
         con.execute("insert into raw.extract_metadata values (?, ?, ?, ?)",
                     [extract_id, metadata, run_id, loaded_at])
@@ -251,14 +282,18 @@ def load_file(con, path, cfg, run_id, log):
         overlap = count_overlap(con, table, keys, extract_id)
         write_log(con, run_id, extract_id, name, sha, "loaded", result["read"], len(values), None,
                   started, overlap)
+        steps["checks"] = time.perf_counter() - mark
+        mark = time.perf_counter()
         con.commit()
+        steps["commit"] = time.perf_counter() - mark
     except Exception as error:  # roll back whatever went wrong, then record it
         con.rollback()
         log.debug("traceback for %s", name, exc_info=True)
         return fail(f"{type(error).__name__}: {error}")
     result.update(status="loaded", loaded=len(values))
-    log.info("%s: loaded %d records in %.1fs, %d already stored from other extracts (%s)", name, len(values),
-             time.perf_counter() - timer, overlap, extract.parser)
+    log.info("%s: loaded %d records in %.1fs (%s), %d already stored from other extracts (%s)", name,
+             len(values), time.perf_counter() - timer,
+             ", ".join(f"{step} {seconds:.1f}s" for step, seconds in steps.items()), overlap, extract.parser)
     return result
 
 

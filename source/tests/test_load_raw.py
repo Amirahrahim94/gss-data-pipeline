@@ -9,6 +9,7 @@ quickly; one test loads the full extracts.
 Run from the project root:  python -m unittest discover -s source/tests -v
 """
 import ast
+from functools import lru_cache
 import json
 import shutil
 import subprocess
@@ -32,12 +33,13 @@ FILE_A, FILE_B = "gss_cut_a_2016_2018.json", "gss_cut_b_2018_2022.json"
 SMALL = 400  # keep respondents with id_ <= SMALL; 2018 respondents stay in both cuts
 
 
+@lru_cache(maxsize=2)
 def read_records(name):
     return ast.literal_eval((RAW / name).read_text(encoding="utf-8"))["data"]
 
 
 def subset(name):
-    return [r for r in read_records(name) if int(r["id_"]) <= SMALL]
+    return [dict(r) for r in read_records(name) if int(r["id_"]) <= SMALL]
 
 
 class LoaderTest(unittest.TestCase):
@@ -267,6 +269,38 @@ class LoaderTest(unittest.TestCase):
             self.load({FILE_A: self.a})
         self.assertTrue(any("reloading" in line for line in captured.output))
 
+    def test_bulk_load_preserves_text_nulls_and_special_characters(self):
+        samples = [None, "", "None", "NULL", ".i:  Inapplicable", "00123",
+                   'comma, quote" and backslash\\', "line1\nline2", "CR\rLF\r\nend",
+                   "tab\tvalue", "Melayu العربية 中文", "  spaces  "]
+        records = [{"year": "2022", "id_": str(i), "answer": value}
+                   for i, value in enumerate(samples)]
+        self.assertEqual(self.statuses(self.load({FILE_A: records})), {FILE_A: "loaded"})
+        stored = self.query("select answer from raw.gss_responses order by cast(id_ as integer)")
+        self.assertEqual([row[0] for row in stored], samples)
+        self.assertEqual(self.statuses(self.load({FILE_A: records})), {FILE_A: "skipped"})
+
+    def test_bulk_temporary_files_are_cleaned_after_success(self):
+        original = tempfile.TemporaryDirectory
+        scratch = self.tmp / "bulk_files"
+        scratch.mkdir()
+        with mock.patch.object(load_raw.tempfile, "TemporaryDirectory",
+                side_effect=lambda **kw: original(dir=scratch, **kw)):
+            self.assertEqual(self.statuses(self.load({FILE_A: self.a})), {FILE_A: "loaded"})
+        self.assertEqual(list(scratch.iterdir()), [])
+
+    def test_bulk_temporary_files_are_cleaned_after_insert_failure(self):
+        original = tempfile.TemporaryDirectory
+        scratch = self.tmp / "bulk_files"
+        scratch.mkdir()
+        fake = mock.Mock()
+        fake.execute.side_effect = RuntimeError("bulk insert failed")
+        with mock.patch.object(load_raw.tempfile, "TemporaryDirectory",
+                side_effect=lambda **kw: original(dir=scratch, **kw)):
+            with self.assertRaisesRegex(RuntimeError, "bulk insert failed"):
+                load_raw.insert_rows(fake, "gss_responses", ["answer"], [["text"]])
+        self.assertEqual(list(scratch.iterdir()), [])
+
     # completeness ----------------------------------------------------------
     def test_a_partly_stored_file_is_not_skipped_and_is_repaired(self):
         self.load({FILE_A: self.a})
@@ -355,7 +389,12 @@ class LoaderTest(unittest.TestCase):
             [sys.executable, "-c",
              f"import duckdb, time; c = duckdb.connect({str(self.db)!r}); print('ready', flush=True); time.sleep(20)"],
             stdout=subprocess.PIPE, text=True)
-        self.addCleanup(holder.kill)
+        def cleanup_holder():
+            if holder.poll() is None:
+                holder.kill()
+            holder.wait()
+            holder.stdout.close()
+        self.addCleanup(cleanup_holder)
         self.assertEqual(holder.stdout.readline().strip(), "ready")
         with self.assertRaises(load_raw.LoadError) as caught:
             load_raw.connect(self.db)
