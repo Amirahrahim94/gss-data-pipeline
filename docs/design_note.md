@@ -40,7 +40,7 @@ unchanged under `source/data/raw/`. The reader tries strict JSON, then `ast.lite
 
 | layer | contents | purpose |
 |---|---|---|
-| `raw` | source values represented as text, plus source file, SHA-256 and load time; a load log; unchanged source files remain the authoritative originals | preserve the source and show what was loaded |
+| `raw` | source values represented as text, plus source file, SHA-256 and load time; a load log; the export's own variable and code metadata (the source for the `ref_*` seeds); unchanged source files remain the authoritative originals | preserve the source and show what was loaded |
 | `staging` | one row per distinct respondent-year; renamed and typed columns; the overlap between cuts resolved | one place where the source is cleaned and deduplicated |
 | `intermediate` | the long response table (one row per respondent-year per variable) with each value's response type and label attached from the metadata seeds | reusable logic that does not depend on one survey or on any analytical question |
 | `marts` | `dim_respondent`, `fct_response` and a wide view for the six questions | what analysts query |
@@ -64,7 +64,7 @@ Nothing is filled or recoded in place, and an analyst cannot mistake "not asked 
 year" for "no" or for a real answer.
 
 Literal answers such as `None` (religion), `Never`, or the number zero are genuine
-answers. `EVWORK` is read together with `WRKSTAT`, since inapplicable is not "never
+answers. `evwork` is read together with `wrkstat`, since inapplicable is not "never
 worked".
 
 `fct_response` is long, so adding a variable means adding it to the extracts and the seeds;

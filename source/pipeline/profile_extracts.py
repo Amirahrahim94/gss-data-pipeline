@@ -13,18 +13,18 @@ Special missing codes are text like ".i:  Inapplicable" (letter after the dot).
 "non_missing" only means "not a special missing code", not "valid".
 
 Usage: python source/pipeline/profile_extracts.py [--raw-dir D] [--config F] [--out-dir D]
-Output: data_profile_output.md and data_profile_detail.csv
+Output: data_profile_summary.md and data_profile_detail.csv
 """
 import argparse
-import ast
 import csv
-import hashlib
 import itertools
 import json
 import re
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
+
+from extract_reader import ExtractError, read_extract
 
 ROOT = Path(__file__).resolve().parents[2]
 MISSING = re.compile(r"^\.([a-z]):")
@@ -44,45 +44,10 @@ def classify(value):
     return LABELS.get(match[1], f"missing_{match[1]}") if match else "non_missing"
 
 
-def read_extract(path, keys):
-    """Return (rows by respondent key, problems, parser, sha256, columns).
-
-    Columns come from the first record; any record with a different column set
-    is reported and skipped, so later code can rely on every row having them.
-    """
-    raw = path.read_bytes()
-    text = raw.decode("utf-8-sig")
-    try:
-        data, parser = json.loads(text), "JSON"
-    except json.JSONDecodeError:  # Data Explorer writes Python literals
-        data, parser = ast.literal_eval(text), "Python literal (not strict JSON)"
-    records = data.get("data") if isinstance(data, dict) else None
-    if not isinstance(records, list) or not records or not isinstance(records[0], dict):
-        sys.exit(f"{path.name}: expected a non-empty 'data' list of respondent dicts")
-    columns = set(records[0])
-    if not set(keys) <= columns:
-        sys.exit(f"{path.name}: key columns {keys} are not all present")
-    rows, problems = {}, []
-    for i, row in enumerate(records):
-        if not isinstance(row, dict) or set(row) != columns:
-            problems.append(f"{path.name} record {i}: columns differ from the first record, skipped")
-        elif any(row[k] in (None, "") for k in keys):
-            problems.append(f"{path.name} record {i}: missing key, skipped")
-        else:
-            key = tuple(str(row[k]) for k in keys)
-            if key in rows:
-                problems.append(f"{path.name} record {i}: duplicate {key}, kept first")
-            else:
-                rows[key] = row
-    if not rows:
-        sys.exit(f"{path.name}: no usable records after validation")
-    return rows, problems, parser, hashlib.sha256(raw).hexdigest(), columns
-
-
 def main():
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("--raw-dir", type=Path, default=ROOT / "source/data/raw")
-    p.add_argument("--config", type=Path, default=ROOT / "source/config/profile_config.json")
+    p.add_argument("--config", type=Path, default=ROOT / "source/config/extract_config.json")
     p.add_argument("--out-dir", type=Path, default=ROOT / "docs")
     args = p.parse_args()
     cfg = json.loads(args.config.read_text(encoding="utf-8"))
@@ -93,10 +58,14 @@ def main():
         sys.exit(f"No files matching {cfg['input_files']} in {args.raw_dir}")
     cuts, problems, files, schemas = {}, [], [], {}
     for path in paths:
-        rows, found, parser, sha, columns = read_extract(path, cfg["key_columns"])
-        cuts[path.stem], schemas[path.stem] = rows, columns
-        problems += found
-        files.append(f"- {path.name}: {len(rows):,} records, {parser}, SHA-256 {sha}")
+        try:
+            ext = read_extract(path, cfg["key_columns"], cfg.get("records_key", "data"), cfg.get("max_file_bytes"))
+        except ExtractError as error:
+            sys.exit(f"Unusable input: {error}")
+        cuts[path.stem], schemas[path.stem] = ext.rows, ext.columns
+        problems += ext.problems
+        files.append(f"- {path.name}: {len(ext.rows):,} usable of {ext.record_count:,} records, "
+                     f"{ext.parser}, SHA-256 {ext.sha256}")
     # Every file must have the same columns; profile only those they all share.
     first_name = next(iter(schemas))
     for name, columns in schemas.items():
@@ -109,7 +78,7 @@ def main():
     variables = [c for c in first_row if c in shared_columns and c not in cfg["key_columns"]]
 
     # Overlap: shared respondents per pair, whether they agree, and each cut's own years.
-    overlap = []
+    overlap, conflict_found = [], False
     for a, b in itertools.combinations(cuts, 2):
         shared = cuts[a].keys() & cuts[b].keys()
         differ = [k for k in shared if cuts[a][k] != cuts[b][k]]
@@ -117,21 +86,29 @@ def main():
                        f"({len(shared) / len(cuts[a]):.1%} of {a}, {len(shared) / len(cuts[b]):.1%} of {b}); "
                        f"{len(differ):,} with different answers")
         if differ:
+            conflict_found = True
             problems.append(f"{a} / {b}: {len(differ)} shared respondents have different answers, "
                             f"e.g. {differ[0]}")
     years = {n: {str(r[year]) for r in rows.values()} for n, rows in cuts.items()}
     for n in cuts:
         others = set().union(*(years[m] for m in cuts if m != n))
         overlap.append(f"- years only in {n}: {sorted(years[n] - others) or 'none'}")
-    # Each respondent once; on a conflict the first cut wins (conflicts are flagged above).
+    # Each respondent-year once. If shared answers conflict, there is no honest combined
+    # set (picking one cut would be arbitrary), so the combined profile is left out.
+    distinct = set().union(*(rows.keys() for rows in cuts.values()))
+    overlap.insert(0, f"- distinct respondent-years overall: {len(distinct):,}")
     combined = {}
-    for rows in cuts.values():
-        for k, r in rows.items():
-            combined.setdefault(k, r)
-    overlap.insert(0, f"- distinct respondents overall: {len(combined):,}")
+    if conflict_found:
+        overlap.append("- combined profile and ballot comparison OMITTED: shared respondent-years "
+                       "have conflicting answers, so there is no reliable combined set")
+    else:
+        for rows in cuts.values():
+            for k, r in rows.items():
+                combined.setdefault(k, r)
 
     detail, tables, flags = [], [], []
-    for scope, rows in {**cuts, "combined_distinct": combined}.items():
+    scopes = {**cuts} if conflict_found else {**cuts, "combined_distinct": combined}
+    for scope, rows in scopes.items():
         by_year = defaultdict(list)
         for row in rows.values():
             by_year[str(row[year])].append(row)
@@ -156,10 +133,13 @@ def main():
                     flags.append(f"- {v} in {y} ({scope}): no non-missing values; "
                                  f"{count / n * 100:.0f}% are '{top}'")
 
-    ballots = []
-    if ballot:
+    ballots, no_ballot = [], 0
+    if ballot and combined:
         rates = defaultdict(lambda: defaultdict(lambda: [0, 0]))  # (year, var) -> ballot -> [ok, n]
         for row in combined.values():
+            if classify(row[ballot]) != "non_missing":  # no usable ballot label: leave out
+                no_ballot += 1
+                continue
             for v in variables:
                 cell = rates[(str(row[year]), v)][row[ballot]]
                 cell[0] += classify(row[v]) == "non_missing"
@@ -167,7 +147,8 @@ def main():
         for (y, v), by_b in sorted(rates.items()):
             pct = {b: ok / n * 100 for b, (ok, n) in by_b.items()}
             if max(pct.values()) - min(pct.values()) >= 40:
-                ballots.append(f"- {v} in {y}: " + ", ".join(f"{b} {r:.0f}%" for b, r in sorted(pct.items())))
+                ballots.append(f"- {v} in {y}: " + ", ".join(
+                    f"{b} {pct[b]:.0f}% (n={by_b[b][1]:,})" for b in sorted(pct)))
 
     out = ["# Data profile of the raw extracts", ""]
     if problems:
@@ -179,13 +160,16 @@ def main():
     out += ["", "## Variables with no non-missing values in a year", "",
             "Cause is not established by the data alone (year, ballot or eligibility); "
             "only an explicit '.y' supports 'unavailable that year'.", ""] + (flags or ["- none"])
-    out += ["", "## Variables whose answers depend on the ballot", "",
-            "Share of non-missing values differs by 40+ points between ballots; "
-            "confirm the cause in the survey documentation.", ""] + (ballots or ["- none"])
+    out += ["", "## Observed response coverage by ballot", "",
+            "Variables whose share of non-missing values differs by 40+ points between ballots "
+            "(n = respondent-years in that ballot group). These are observed rates, not proof of "
+            "questionnaire assignment: confirm the cause in the survey documentation. "
+            f"Respondent-years with no usable ballot label are left out: {no_ballot:,}.", ""] + (
+            ballots or (["- omitted"] if conflict_found else ["- none"]))
     out += ["", "## Response types by year and variable (unweighted)"] + tables
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    (args.out_dir / "data_profile_output.md").write_text("\n".join(out) + "\n", encoding="utf-8")
+    (args.out_dir / "data_profile_summary.md").write_text("\n".join(out) + "\n", encoding="utf-8")
     with (args.out_dir / "data_profile_detail.csv").open("w", encoding="utf-8-sig", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=list(detail[0]))
         writer.writeheader()

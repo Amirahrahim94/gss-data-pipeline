@@ -1,0 +1,11 @@
+{
+  "input_files": "gss_cut_*.json",
+  "key_columns": [
+    "year",
+    "id_"
+  ],
+  "year_column": "year",
+  "ballot_column": "ballot",
+  "records_key": "data",
+  "raw_table": "gss_responses"
+}
