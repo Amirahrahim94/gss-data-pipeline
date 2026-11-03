@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: int_gss__responses_long
+    description: One row per respondent-year per question, with every answer classified.
+    columns:
+      - name: respondent_year_id
+        data_tests: [not_null]
+      - name: variable_name
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('ref_variables')
+                field: variable_name
+      - name: answer_code
+        description: The code in ref_codes for this label. NULL when the label has no code (a numeric answer) or maps to more than one (see code_is_ambiguous).
+      - name: code_is_ambiguous
+        description: True when the label is defined under more than one code in ref_codes, so the code cannot be chosen from the label.
+        data_tests: [not_null]
+      - name: response_type
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [answer, null_in_source, inapplicable, no_answer, dont_know, skipped_on_web,
+                         unavailable_that_year, unavailable_in_release, refused, no_job,
+                         not_applicable_or_not_imputable, combined_dk_na_iap, reserve_code,
+                         uncodable, missing_birthdate, not_imputable, ambiguous_label]

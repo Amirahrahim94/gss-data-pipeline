@@ -1,0 +1,39 @@
+version: 2
+
+models:
+  - name: dim_respondent
+    description: One row per respondent-year (about 8,759 here) with demographics, ballot and weight.
+    columns:
+      - name: respondent_year_id
+        description: Survey year and respondent id, e.g. 2018-1042. Identifies one respondent in one year.
+        data_tests: [not_null, unique]
+      - name: survey_year
+        data_tests: [not_null]
+      - name: weight
+        description: Post-stratification sample weight (wtssnrps). Use it for population shares, not for group sizes.
+        data_tests: [not_null]
+      - name: extract_count
+        description: How many extracts held this respondent-year (2 means it is in both cuts).
+      - name: age_number
+        description: Age in years. Null for the top code "89 or older" and for missing kinds.
+
+  - name: fct_response
+    description: One row per respondent-year per question, with the answer classified.
+    columns:
+      - name: respondent_year_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_respondent')
+                field: respondent_year_id
+      - name: variable_name
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('ref_variables')
+                field: variable_name
+      - name: response_type
+        description: "'answer' for a real answer, otherwise the kind of missing value."
+      - name: is_answer
+        data_tests: [not_null]

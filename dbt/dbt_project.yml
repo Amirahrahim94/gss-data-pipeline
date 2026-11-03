@@ -11,6 +11,13 @@ test-paths: ["tests"]
 
 clean-targets: ["target", "dbt_packages"]
 
+# Settings that belong to the data, not the code. Answer columns come from the staging model;
+# numeric_variables are the ones whose real answers are numbers that ref_codes does not list.
+vars:
+  answer_variables: [wrkstat, evwork, indus10, age, educ, sex, region, relig, attend, reliten,
+                     postlife, pray, relig16, satjob, news, tvhours, wwwhr, inttech]
+  numeric_variables: [age, tvhours, wwwhr]
+
 # Layers from docs/design_note.md: staging and intermediate are views, marts are tables.
 models:
   gss_pipeline:
