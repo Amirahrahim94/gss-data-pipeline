@@ -6,7 +6,8 @@
     loses nothing. Keys and the weight are typed here; the survey answers stay as received
     (text, with special missing codes such as ".i:  Inapplicable") and are classified in the
     intermediate layer. try_cast turns an unusable key or weight into NULL so the not_null
-    tests fail loudly instead of the build stopping. -#}
+    tests fail loudly instead of the build stopping. The answer columns come from the
+    answer_variables setting in dbt_project.yml, so a new variable is added there once. -#}
 
 with source as (
 
@@ -32,23 +33,8 @@ select
     ballot,
     try_cast(wtssnrps as double)    as weight,
     extract_count,
-    wrkstat,
-    evwork,
-    indus10,
-    age,
-    educ,
-    sex,
-    region,
-    relig,
-    attend,
-    reliten,
-    postlife,
-    pray,
-    relig16,
-    satjob,
-    news,
-    tvhours,
-    wwwhr,
-    inttech
+    {%- for variable in var('answer_variables') %}
+    {{ variable }}{{ "," if not loop.last }}
+    {%- endfor %}
 from ranked
 where extract_rank = 1

@@ -1,6 +1,6 @@
 {#- One row per respondent-year: who the respondent is, which ballot and weight they carry.
-    Age is numeric except the top code "89 or older", so it is taken from the classified long
-    table: age_number is null for that code and for any missing kind. -#}
+    Age comes from the classified long table: age_number is the age in years, 89 for the
+    top-coded "89 or older", and null for any missing kind. -#}
 
 select
     s.respondent_year_id,

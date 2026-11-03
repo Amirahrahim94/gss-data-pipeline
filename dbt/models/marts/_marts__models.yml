@@ -15,7 +15,7 @@ models:
       - name: extract_count
         description: How many extracts held this respondent-year (2 means it is in both cuts).
       - name: age_number
-        description: Age in years. Null for the top code "89 or older" and for missing kinds.
+        description: Age in years; 89 means "89 or older" (top-coded). Null for missing kinds.
 
   - name: fct_response
     description: One row per respondent-year per question, with the answer classified.
@@ -36,4 +36,20 @@ models:
       - name: response_type
         description: "'answer' for a real answer, otherwise the kind of missing value."
       - name: is_answer
+        data_tests: [not_null]
+
+  - name: fct_variable_coverage
+    description: >
+      Where each variable is valid. One row per variable, survey year and ballot, counting real
+      answers, respondents not asked or not applicable, and respondents with no usable answer.
+    columns:
+      - name: variable_name
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('ref_variables')
+                field: variable_name
+      - name: is_asked
+        description: True when at least one respondent gave a real answer in this year and ballot.
         data_tests: [not_null]

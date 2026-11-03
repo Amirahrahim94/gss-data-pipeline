@@ -5,7 +5,9 @@
       - 'answer'            a real answer
       - a missing kind      e.g. 'inapplicable', 'no_answer', 'dont_know'
       - 'answer' with answer_number   a numeric answer the code list does not enumerate
-                                      (age 45, tvhours 3) for the variables in numeric_variables
+                                      (age 45, tvhours 3) for the variables in numeric_variables;
+                                      listed labels such as "0 hours" or "89 or older" take their
+                                      code as the number (0 and 89, the top-coded age)
       - 'null_in_source'    the extract holds no value at all
       - 'unmapped'          anything else; a test fails if this ever appears
     ref_codes can hold the same label under two codes (indus10 "Uncodeable" is 9890 and 9997).
@@ -64,9 +66,9 @@ select
         else 'unmapped'
     end as response_type,
     case
-        when c.response_type is null
-             and l.variable_name in ({{ "'" ~ var('numeric_variables') | join("', '") ~ "'" }})
-        then try_cast(l.answer_label as double)
+        when l.variable_name in ({{ "'" ~ var('numeric_variables') | join("', '") ~ "'" }})
+             and (c.response_type = 'answer' or c.response_type is null)
+        then coalesce(try_cast(l.answer_label as double), c.answer_code)
     end as answer_number
 from long_form as l
 left join code_lookup as c
