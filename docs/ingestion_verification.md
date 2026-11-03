@@ -49,9 +49,11 @@ controlled benchmark. Reading and validation stayed enabled throughout; the file
 
 ## Rerun
 
-Both files are skipped after the stored rows are verified: covered by the automated test
-`test_running_twice_changes_nothing`, and observed with an earlier version of the loader.
-Manual rerun of the current loader: *record its run ID here*.
+Run `20261103T140459-54314e` (3 November 2026) reran the current loader against the same
+database: 0 loaded, 2 skipped, 0 failed, 2.0 seconds. Both files were skipped after their
+stored rows were verified. The overlap check was unchanged: 2,348 shared respondent-years,
+0 with different answers. The behaviour is also covered by the automated test
+`test_running_twice_changes_nothing`.
 
 ## Evidence locations
 
