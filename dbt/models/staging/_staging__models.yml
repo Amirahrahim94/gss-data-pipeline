@@ -9,29 +9,35 @@ models:
     columns:
       - name: respondent_year_id
         description: Text key "<survey_year>-<respondent_id>", unique per respondent-year.
-        tests:
+        data_tests:
           - not_null
           - unique
       - name: survey_year
         description: Survey year (integer).
-        tests:
+        data_tests:
           - not_null
       - name: respondent_id
         description: Respondent id within a survey year (integer); repeats every year.
-        tests:
+        data_tests:
           - not_null
       - name: ballot
         description: Questionnaire ballot the respondent was asked.
-        tests:
+        data_tests:
           - not_null
           - accepted_values:
               arguments:
                 values: ['Ballot a', 'Ballot b', 'Ballot c']
       - name: weight
-        description: Survey weight (wtssnrps). Percentages elsewhere are unweighted unless stated.
-        tests:
+        description: Survey weight (wtssnrps). Each analysis states whether its figures are weighted.
+        data_tests:
           - not_null
       - name: extract_count
         description: How many extracts contained this respondent-year (1 or 2 here).
-        tests:
+        data_tests:
           - not_null
+      - name: wrkstat
+        description: >
+          One column per variable in the answer_variables setting (dbt_project.yml), from
+          wrkstat to inttech. Each holds the answer label exactly as received, special missing
+          codes included; int_gss__responses_long classifies them. Only wrkstat is listed here
+          because the others follow the same rule; ref_variables describes each variable.

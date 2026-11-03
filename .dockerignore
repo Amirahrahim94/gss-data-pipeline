@@ -1,0 +1,13 @@
+# Keep the image to the repository's own files: no local environment, database, logs or
+# generated dbt output, so a build always starts from the same inputs.
+.git
+.venv
+logs
+output
+source/data/warehouse
+dbt/target
+dbt/logs
+dbt/.user.yml
+**/__pycache__
+*.duckdb
+*.duckdb.wal

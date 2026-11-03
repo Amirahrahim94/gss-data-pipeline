@@ -46,3 +46,9 @@ seeds:
         label: varchar
         response_type: varchar
         missing_code_letter: varchar
+    ref_variable_validity:
+      +column_types:
+        variable_name: varchar
+        survey_year: integer
+        ballot: varchar
+        is_asked: boolean
