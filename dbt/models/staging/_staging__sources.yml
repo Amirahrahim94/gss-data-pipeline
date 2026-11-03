@@ -1,0 +1,32 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Tables written by source/pipeline/load_raw.py. Values are text, as received.
+    schema: raw
+    tables:
+      - name: gss_responses
+        description: >
+          One row per respondent-year per extract. A respondent-year that appears in
+          more than one extract appears once for each of them, with identical answers.
+        columns:
+          - name: extract_id
+            description: Which extract the row came from (the file name unless mapped in the config).
+            tests:
+              - not_null
+          - name: year
+            description: Survey year. With id_ it identifies a respondent-year.
+            tests:
+              - not_null
+          - name: id_
+            description: Respondent id; repeats every survey year, so it is unique only within a year.
+            tests:
+              - not_null
+          - name: record_sha256
+            description: Fingerprint of the record's values, used to compare shared respondent-years.
+            tests:
+              - not_null
+      - name: extract_metadata
+        description: The export's own variable and code metadata, one row per extract (source for the ref_* seeds).
+      - name: load_log
+        description: One row per file per loader run, with status, counts and any error.

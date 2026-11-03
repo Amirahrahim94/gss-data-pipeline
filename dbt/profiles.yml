@@ -1,0 +1,10 @@
+# Connection settings. Nothing here is secret: the only variable is the database file path.
+# Run dbt from the dbt/ folder with: dbt <command> --profiles-dir .
+# GSS_DB_PATH (the same variable the loader uses) overrides the default; use an absolute path.
+gss:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('GSS_DB_PATH', '../source/data/warehouse/gss.duckdb') }}"
+      threads: 1

@@ -1,0 +1,41 @@
+name: gss_pipeline
+version: "1.0.0"
+config-version: 2
+
+profile: gss
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+
+clean-targets: ["target", "dbt_packages"]
+
+# Layers from docs/design_note.md: staging and intermediate are views, marts are tables.
+models:
+  gss_pipeline:
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: intermediate
+      +materialized: view
+    marts:
+      +schema: marts
+      +materialized: table
+
+seeds:
+  gss_pipeline:
+    +schema: reference
+    ref_variables:
+      +column_types:
+        variable_name: varchar
+        label: varchar
+        question_text: varchar
+    ref_codes:
+      +column_types:
+        variable_name: varchar
+        code: integer
+        label: varchar
+        response_type: varchar
+        missing_code_letter: varchar

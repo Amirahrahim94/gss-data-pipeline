@@ -1,0 +1,37 @@
+version: 2
+
+models:
+  - name: stg_gss__respondents
+    description: >
+      One row per distinct respondent-year (survey_year, respondent_id). A respondent-year
+      present in both extracts is kept once. Survey answers are text as received, including
+      special missing codes; they are classified in the intermediate layer.
+    columns:
+      - name: respondent_year_id
+        description: Text key "<survey_year>-<respondent_id>", unique per respondent-year.
+        tests:
+          - not_null
+          - unique
+      - name: survey_year
+        description: Survey year (integer).
+        tests:
+          - not_null
+      - name: respondent_id
+        description: Respondent id within a survey year (integer); repeats every year.
+        tests:
+          - not_null
+      - name: ballot
+        description: Questionnaire ballot the respondent was asked.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Ballot a', 'Ballot b', 'Ballot c']
+      - name: weight
+        description: Survey weight (wtssnrps). Percentages elsewhere are unweighted unless stated.
+        tests:
+          - not_null
+      - name: extract_count
+        description: How many extracts contained this respondent-year (1 or 2 here).
+        tests:
+          - not_null

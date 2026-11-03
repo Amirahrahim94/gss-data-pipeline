@@ -15,6 +15,15 @@ from typing import NamedTuple
 MISSING_LABEL = re.compile(r"^\.[a-z]:")
 
 
+# Response type for each special-missing letter (".i:  Inapplicable" -> "i"). One definition,
+# shared by the profiler and the reference-seed builder, so they cannot disagree.
+MISSING_TYPES = {"i": "inapplicable", "n": "no_answer", "d": "dont_know",
+                 "s": "skipped_on_web", "y": "unavailable_that_year",
+                 "x": "unavailable_in_release", "r": "refused", "j": "no_job",
+                 "p": "not_applicable_or_not_imputable", "m": "combined_dk_na_iap",
+                 "z": "reserve_code", "u": "uncodable", "f": "missing_birthdate",
+                 "q": "not_imputable"}
+
 # Columns the loader adds to every raw row; a source column may not use these names.
 RESERVED_COLUMNS = {"extract_id", "source_file", "file_sha256", "record_sha256", "run_id", "loaded_at"}
 

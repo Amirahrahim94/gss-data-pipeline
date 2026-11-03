@@ -6,9 +6,6 @@ thing is or does, so it can be found without opening it.
 Variable and column names are always written lowercase, in prose as well as code
 (`evwork`, `wrkstat`), exactly as they appear in the data.
 
-`source/tests/test_naming.py` checks this: file and folder names, config keys, CSV
-headers and Python names. A new file that breaks the rule fails the test run.
-
 ## Files in the repository
 
 | kind | pattern | example |

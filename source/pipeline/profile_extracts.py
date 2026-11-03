@@ -24,16 +24,10 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from extract_reader import ExtractError, read_extract
+from extract_reader import MISSING_TYPES, ExtractError, read_extract
 
 ROOT = Path(__file__).resolve().parents[2]
 MISSING = re.compile(r"^\.([a-z]):")
-LABELS = {"i": "inapplicable", "n": "no_answer", "d": "dont_know",
-          "s": "skipped_on_web", "y": "unavailable_that_year",
-          "x": "unavailable_in_release", "r": "refused", "j": "no_job",
-          "p": "not_applicable_or_not_imputable", "m": "combined_DK_NA_IAP",
-          "z": "reserve_code", "u": "uncodable", "f": "missing_birthdate",
-          "q": "not_imputable"}
 
 
 def classify(value):
@@ -41,7 +35,7 @@ def classify(value):
     if value is None or not str(value).strip():
         return "blank"
     match = MISSING.match(str(value).strip())
-    return LABELS.get(match[1], f"missing_{match[1]}") if match else "non_missing"
+    return MISSING_TYPES.get(match[1], f"missing_{match[1]}") if match else "non_missing"
 
 
 def main():
