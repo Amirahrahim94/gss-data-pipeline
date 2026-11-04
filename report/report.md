@@ -218,7 +218,7 @@ At the full file, values grow about 3,400× (157,662 → about 530 million).
    3 MB). At about 26 bytes per value, the full file would be roughly 13 GB. Fix: CSV or
    Parquet, read in a stream, one wave per file.
 2. **Next: the generated SQL.** The long model writes one `union all` per variable; 7,000 is
-   too many. Fix: DuckDB `UNPIVOT`.
+   too many. Fix: use the query engine's unpivot method.
 3. **Grows fastest: the long table**, to about 530 million rows, too much to rebuild on every run. Fix: incremental models by survey year, kept sorted by variable.
 4. **Seeds outgrow seeds:** `ref_codes` from 637 rows to about 200,000. Fix: load code
    metadata as a raw table.
