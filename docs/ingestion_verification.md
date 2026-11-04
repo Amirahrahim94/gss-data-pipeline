@@ -95,7 +95,6 @@ Python 3.12.10), run on Docker Desktop for Windows with an empty folder mounted 
 | Evidence after the container exits | `gss.duckdb`, `logs/pipeline.log`, `dbt_logs/`, `dbt_target/` all in the mounted folder |
 | Results and docs commands | `dbt show` returned Q2; `dbt docs serve` served the docs and manifest |
 | `profile_extracts.py`, `build_reference_seeds.py` in the container | byte-identical to the committed files |
-| `benchmark_sort_order.py` in the container | 128-129 of 129 row groups per scan before, 8 of 129 after; identical results |
 
 ## Clean-machine run (4 November 2026)
 

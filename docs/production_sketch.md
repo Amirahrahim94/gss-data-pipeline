@@ -8,8 +8,7 @@ checked before relying on them.
 
 **Assumed scale:** the full GSS cumulative file (about 75,700 respondents, about 7,000
 variables), a new wave every two years, plus the sources in section 2. The long response
-table is about 530 million rows: at least 4 GB compressed, probably more, since that figure
-comes from repeated test data (report, section 9).
+table is about 530 million rows (report, section 9).
 
 ```
 Data Explorer export / other sources

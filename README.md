@@ -72,7 +72,6 @@ available that year, and `postlife` and `reliten` were answered by only about ha
 | `source/pipeline/load_raw.py` | Loads the extracts into DuckDB (`raw` schema) |
 | `source/pipeline/build_reference_seeds.py` | Rebuilds the `dbt/seeds` code metadata from the extracts |
 | `source/pipeline/run_pipeline.py` | Runs load, dbt build and dbt docs in order |
-| `source/pipeline/benchmark_sort_order.py` | Reproduces the query-plan comparison in the report |
 | `source/tests/` | Loader and seed-builder tests |
 | `dbt/models/` | `staging/` (views), `intermediate/` (views), `marts/` (tables) |
 | `dbt/seeds/` | `ref_variables`, `ref_codes` (what every code means and what kind of value it is) and `ref_variable_validity` (which years and ballots each question was answered in, as observed) |
@@ -124,9 +123,6 @@ docker run --rm -v "${PWD}/output:/app/output" gss-pipeline dbt show --select q1
 
 # browse the dbt documentation at http://localhost:8080
 docker run --rm -p 8080:8080 -v "${PWD}/output:/app/output" gss-pipeline dbt docs serve --project-dir dbt --profiles-dir dbt --host 0.0.0.0 --port 8080 --no-browser
-
-# the query-plan comparison in the report
-docker run --rm -v "${PWD}/output:/app/output" gss-pipeline python source/pipeline/benchmark_sort_order.py
 ```
 
 ### Option B: local virtual environment
@@ -192,7 +188,6 @@ Other commands:
 ```powershell
 python source/pipeline/profile_extracts.py          # data profile -> docs/
 python source/pipeline/build_reference_seeds.py     # rebuild dbt/seeds from the extracts
-python source/pipeline/benchmark_sort_order.py      # Q1 plan and timings on a 100x copy: a layout test (report section 7)
 python -m unittest discover -s source/tests -v      # loader and seed-builder tests
 ```
 
