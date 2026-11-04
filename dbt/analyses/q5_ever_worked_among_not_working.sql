@@ -1,12 +1,12 @@
 -- Q5. Among respondents who are not currently working, what share have ever worked for 12
 -- months or more?  Variables: wrkstat (work_status and is_working in dim_respondent), evwork
--- (ever worked as long as one year; only put to people who are not working).
+-- (ever worked as long as one year; almost only people not working have an answer).
 -- Not working = a real wrkstat answer other than working: retired, keeping house, unemployed,
 -- in school, other. "With a job but not at work" counts as working.
 -- pct_yes_of_answered is weighted, among YES and NO answers.
--- The unemployed are almost never asked evwork (they are asked about their last job), so
--- their rows land in not_asked, not in no_usable_answer, and the "All not working" share is
--- in practice a share of the retired, keeping house, in school and other groups.
+-- Nearly all unemployed respondents are ".i" for evwork (the reason is not in the extract),
+-- so their rows land in not_asked, not in no_usable_answer, and the "All not working" share
+-- is in practice a share of the retired, keeping house, in school and other groups.
 
 with ever_worked as (
 

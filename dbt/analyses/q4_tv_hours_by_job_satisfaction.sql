@@ -1,7 +1,7 @@
 -- Q4. Is time spent watching TV related to job satisfaction?
 -- Variables: tvhours (hours per day), satjob (work satisfaction), wrkstat (is_working in
--- dim_respondent). satjob is also answered by people keeping house (about their housework)
--- and by some who are unemployed (about their last job), so only working respondents are
+-- dim_respondent). satjob is also answered by people keeping house and by some who are
+-- unemployed, and may not then describe a current job, so only working respondents are
 -- counted. Only respondents with a real answer to both satjob and tvhours are counted.
 -- avg_tv_hours and pct_tv_4_plus_hours are weighted; unweighted_avg_tv_hours is shown for
 -- comparison and respondents is the unweighted group size. The years are pooled, so a

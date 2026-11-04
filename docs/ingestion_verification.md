@@ -71,12 +71,31 @@ this document or the final report.
 
 ## Not verified
 
-- Linux or macOS execution.
+- macOS, and a local (non-Docker) run on Linux.
 - Behaviour at much larger volumes: the full cumulative GSS file has about 75,700
   respondents and nearly 7,000 variables. The plan is to benchmark a scaled-up copy.
 - Crash or power-loss behaviour, and several loaders at once beyond the refusal test.
 - A dbt failure does not undo a committed raw load (by design: the steps are separate and
   each is safe to rerun).
+
+## Docker run (4 November 2026)
+
+Image built with `--no-cache` from the repository (base image pinned by digest: Debian,
+Python 3.12.10), run on Docker Desktop for Windows with an empty folder mounted at `output/`.
+
+| check | result |
+|---|---|
+| Full pipeline | 2 files loaded, 0 failed; `dbt build` **60 of 60 passing** (3 seeds, 5 models, 52 data tests); docs generated; exit code 0 |
+| Unit tests in the container | 41 passed |
+| Rerun on the same output | 0 loaded, 2 skipped, 0 failed; `dbt build` 60 of 60 |
+| Same results as the local Windows run | all rows of the three marts and all seven analyses identical |
+| Malformed extract added | that file failed with the reason logged, the good file loaded, dbt did not start; exit code 1 |
+| Conflicting answers for a shared respondent-year | file rejected and rolled back; exit code 1 |
+| New record contradicting `ref_variable_validity` (seeds not rebuilt) | `assert_validity_seed_matches_data` failed; 22 downstream steps skipped, including all marts; docs did not run; exit code 1; `run_results.json` and dbt logs kept |
+| Evidence after the container exits | `gss.duckdb`, `logs/pipeline.log`, `dbt_logs/`, `dbt_target/` all in the mounted folder |
+| Results and docs commands | `dbt show` returned Q2; `dbt docs serve` served the docs and manifest |
+| `profile_extracts.py`, `build_reference_seeds.py` in the container | byte-identical to the committed files |
+| `benchmark_sort_order.py` in the container | 128-129 of 129 row groups per scan before, 8 of 129 after; identical results |
 
 ## Clean-machine run (4 November 2026)
 

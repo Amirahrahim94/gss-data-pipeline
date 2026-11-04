@@ -120,6 +120,7 @@ Where the build differs from this plan, and why.
 | Staging carries demographics through to `dim_respondent` | `dim_respondent` takes `sex`, `region`, `educ`, `age` and work status (`is_working`) from the classified long table; the value is null unless it is a real answer, with a `<variable>_response_type` column alongside | A special missing label in a demographic column could be grouped as if it were an answer |
 | Percentages unweighted unless stated (assumption 2) | The analyses report weighted shares and means, and unweighted counts (`n`, `respondents`) for group sizes | Weighted shares estimate the population; unweighted counts show how much evidence sits behind each figure |
 | Marts as plain tables | `fct_response` is written sorted by `variable_name`, `survey_year` | Every analysis filters on one variable; sorted rows let DuckDB skip row groups. On a 100× copy, Q1 read 8 of 129 row groups per scan instead of 129 (report, section 7); the copy tests the layout, not realistic full-scale performance |
+| Pinned Python packages (section 5) | Docker image as the recommended way to run, base image fixed by digest; a virtual environment remains an alternative | Pins the operating system and Python as well as the packages, so the run does not depend on the reviewer's machine |
 | — | `fct_variable_coverage` (one row per variable, year and ballot) | Added so an analyst can see where each variable is answered without reading the profile |
 
 Still as planned: the respondent-year key, the four layers, DuckDB, and the loader's

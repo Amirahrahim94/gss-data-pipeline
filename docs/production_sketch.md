@@ -19,7 +19,7 @@ S3  landing/<source>/<extract>        (immutable, versioned)
         │  S3 event → EventBridge
         ▼
 Step Functions:  load_raw  →  dbt build  →  dbt docs generate
-                 (ECS Fargate tasks, one container image)
+                 (ECS Fargate tasks, one image from the repo's Dockerfile)
         │
         ▼
 S3  warehouse/  Parquet, partitioned by source and survey_year
@@ -32,7 +32,7 @@ Athena workgroup (analysts)      dbt docs as a private S3 static site
 |---|---|---|
 | Where data is stored | **S3**: `landing/` holds exports exactly as received (versioning on, never overwritten); `warehouse/` holds every layer as Parquet, partitioned by `source` and `survey_year`, with `fct_response` sorted by `variable_name` as now | Cheap, durable storage; raw stays immutable, the brief's "preserve raw" rule enforced by the storage itself |
 | What runs the transformations | **dbt-duckdb in an ECS Fargate task**, reading and writing the S3 Parquet files | The same dbt project with a different profile. Data of a few GB fits comfortably in one task (for example 4 vCPU, 16 GB), so no cluster is needed. If data or concurrent users outgrow one machine, switch the adapter to **dbt-athena** with Iceberg tables; the models stay the same |
-| The loader | The same `load_raw.py` in the same image, reading from `landing/` | Keeps the SHA-256 skip, per-file transactions and validation that exist today |
+| The loader | The same `load_raw.py` in the same image (the repository's `Dockerfile`), reading from `landing/` | Keeps the SHA-256 skip, per-file transactions and validation that exist today |
 | What schedules them | **EventBridge**: a new object in `landing/` starts a run; a monthly schedule runs anyway as a check. **Step Functions** runs the steps in order | Event-driven fits data that changes a few times a year; Step Functions gives retries, a visible history of every run, and stops on the first failure exactly like `run_pipeline.py` |
 | Failure and rerun | A failed step (including a failing dbt test) stops the run and sends an SNS alert; rerunning the state machine is safe because every step is idempotent | Same behaviour as today, with alerting |
 | Observability | CloudWatch Logs for each task; `load_log` and dbt `run_results.json` written to S3 and queryable in Athena | What ran, what it processed and why it failed, without logging into anything |

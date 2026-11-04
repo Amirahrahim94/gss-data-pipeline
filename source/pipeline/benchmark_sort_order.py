@@ -35,7 +35,9 @@ from pathlib import Path
 import duckdb
 
 ROOT = Path(__file__).resolve().parents[2]
-ANALYSES = ROOT / "dbt/target/compiled/gss_pipeline/analyses"
+# DBT_TARGET_PATH is where dbt writes in Docker (see the Dockerfile); locally it is unset.
+ANALYSES = (Path(os.environ.get("DBT_TARGET_PATH", ROOT / "dbt/target"))
+            / "compiled/gss_pipeline/analyses")
 # dbt writes tables as "<database>"."marts"."<table>"; swap in the benchmark copies.
 FCT_REFERENCE = re.compile(r'"[^"\s]*"\."marts"\."fct_response"')
 DIM_REFERENCE = re.compile(r'"[^"\s]*"\."marts"\."dim_respondent"')

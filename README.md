@@ -4,8 +4,8 @@ A local Python, DuckDB and dbt pipeline over two extracts of the General Social 
 focused on religiosity and media consumption alongside employment and demographics. It loads
 the extracts safely, models them with dbt, and answers six analytical questions in SQL.
 
-**Status:** loading, modelling, analytical SQL and orchestration are built and tested
-(Windows, Python 3.12, DuckDB). The report is in [`report/report.md`](report/report.md).
+**Status:** loading, modelling, analytical SQL and orchestration are built and tested (in
+Docker, and locally on Windows). The report is in [`report/report.md`](report/report.md).
 
 ## Data source
 
@@ -75,25 +75,27 @@ available that year, and `postlife` and `reliten` were answered by only about ha
 | `source/pipeline/benchmark_sort_order.py` | Reproduces the query-plan comparison in the report |
 | `source/tests/` | Loader and seed-builder tests |
 | `dbt/models/` | `staging/` (views), `intermediate/` (views), `marts/` (tables) |
-| `dbt/seeds/` | `ref_variables`, `ref_codes` (what every code means and what kind of value it is) and `ref_variable_validity` (which years and ballots each question was asked in) |
+| `dbt/seeds/` | `ref_variables`, `ref_codes` (what every code means and what kind of value it is) and `ref_variable_validity` (which years and ballots each question was answered in, as observed) |
 | `dbt/tests/` | Singular data tests (`assert_*`) |
 | `dbt/analyses/` | The six analytical queries (`q1_` to `q6_`) and `overlap_audit` |
 | `docs/` | Design note, naming conventions, data profile, ingestion verification, production sketch (bonus) |
 | `report/` | The report (`report.md`) |
+| `Dockerfile`, `.dockerignore` | The packaged environment (see Setup) |
 
 ## Setup
 
-There are two ways to run the pipeline. Docker needs only Docker installed and fixes the
-operating system and Python version as well as the packages. The local virtual environment
-needs Python 3.12.
+There are two ways to run the pipeline. Docker is the recommended one: it needs only Docker
+installed. A local virtual environment needs Python 3.12.
 
-### Option A: Docker
+### Option A: Docker (recommended)
 
-Requires Docker (Docker Desktop on Windows or macOS). From the repository root:
+Requires Docker (Docker Desktop on Windows or macOS). From the repository root, build once:
 
 ```bash
 docker build -t gss-pipeline .
 ```
+
+Then run the whole pipeline (load, dbt build and tests, dbt docs).
 
 Windows (PowerShell):
 
@@ -107,11 +109,24 @@ macOS or Linux:
 docker run --rm -v "$(pwd)/output:/app/output" gss-pipeline
 ```
 
-This runs the whole pipeline (load, dbt build and tests, dbt docs) and writes the database
-and logs to `output/`. To run the unit tests in the same environment:
+Everything a run produces is written to `output/`, which is not committed: the database
+(`gss.duckdb`), `logs/pipeline.log`, `dbt_logs/` and `dbt_target/` (docs and
+`run_results.json`). The container exits with a non-zero code if any step fails.
 
-```bash
+Other commands, using the same image (PowerShell shown; on macOS or Linux use `$(pwd)`):
+
+```powershell
+# unit tests
 docker run --rm gss-pipeline python -m unittest discover -s source/tests
+
+# one analytical query's result
+docker run --rm -v "${PWD}/output:/app/output" gss-pipeline dbt show --select q1_prayer_by_religion_raised --project-dir dbt --profiles-dir dbt
+
+# browse the dbt documentation at http://localhost:8080
+docker run --rm -p 8080:8080 -v "${PWD}/output:/app/output" gss-pipeline dbt docs serve --project-dir dbt --profiles-dir dbt --host 0.0.0.0 --port 8080 --no-browser
+
+# the query-plan comparison in the report
+docker run --rm -v "${PWD}/output:/app/output" gss-pipeline python source/pipeline/benchmark_sort_order.py
 ```
 
 ### Option B: local virtual environment
@@ -137,28 +152,28 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-The commands below are the same on every platform once the environment is active. Only
-Windows has been tested end to end, including from a clean copy (see
-[ingestion verification](docs/ingestion_verification.md)).
+The commands in "Run" below are the same on every platform once the environment is active.
+This option has been tested on Windows only.
 
-**Why a pinned virtual environment.** The brief allows any approach that is justified and
-pinned. This pipeline needs no server, no cloud and no credentials: it is Python, local files
-and an embedded database (DuckDB), so the only thing to package is Python and its packages.
+### Why Docker
 
+The core pipeline needs no server, no cloud and no credentials: it is Python, local files and
+an embedded database (DuckDB). So the environment is all there is to package, and each part of
+it is pinned, so a run next month behaves like a run today:
+
+- **Operating system and Python:** the base image is fixed by digest (Debian Linux, Python
+  3.12.10). `run_pipeline.py` also refuses any other Python version when run outside Docker.
 - **Packages:** every package, including the ones dbt pulls in, is pinned to an exact version
-  in `requirements.txt`, so an install next month gets exactly what was tested today.
-- **Python:** pinned to 3.12; `run_pipeline.py` refuses to run on any other version.
-- **Evidence:** a clean copy of the repository, a new environment and the steps above
-  reproduced the full run (see [ingestion verification](docs/ingestion_verification.md)).
+  in `requirements.txt`.
+- **Evidence:** a no-cache build reproduced the full run, the unit tests and the same results
+  as the local run (see [ingestion verification](docs/ingestion_verification.md)).
 
-Docker would also pin the operating system, which matters because only Windows has been
-tested; it is the next step if the pipeline must behave identically everywhere. Terraform and
-AWS services provision cloud infrastructure, which the core pipeline deliberately does not
-need; they belong to the production design in [the production sketch](docs/production_sketch.md).
+Terraform and AWS services provision cloud infrastructure, which the core pipeline
+deliberately does not need; they belong to the [production sketch](docs/production_sketch.md).
 
 ## Run
 
-From the repository root, with the environment active:
+For a local virtual environment (Option B), from the repository root with it active:
 
 ```powershell
 python source/pipeline/run_pipeline.py
@@ -194,6 +209,9 @@ To see an analytical query's result, from the `dbt` folder:
 | `GSS_DB_PATH` | DuckDB file, used by the loader and dbt | `source/data/warehouse/gss.duckdb` |
 | `GSS_LOG_DIR` | log folder | `logs/` |
 
+The Docker image sets both to paths under `output/`, along with dbt's own `DBT_LOG_PATH` and
+`DBT_TARGET_PATH`, so a Docker user sets nothing.
+
 Data-specific settings are in `source/config/extract_config.json` (file pattern, key
 columns, record list name) and `dbt/dbt_project.yml` (the answer variables). Nothing secret
 is needed or committed: loading local files needs no credentials, and `dbt/profiles.yml`
@@ -213,8 +231,8 @@ export GSS_LOG_DIR=/data/gss/logs
 
 If a deployment ever needs real credentials (for example a hosted warehouse), they go in the
 same way, as environment variables read by `profiles.yml` through `env_var()`, never in a
-committed file. Machine-specific files (`.venv/`, the database, `logs/`, `dbt/target/`,
-`dbt/.user.yml`) are listed in `.gitignore`.
+committed file. Machine-specific files (`.venv/`, the database, `logs/`, `output/`,
+`dbt/target/`, `dbt/.user.yml`) are listed in `.gitignore`.
 
 ## How the pipeline behaves
 
@@ -224,14 +242,20 @@ committed file. Machine-specific files (`.venv/`, the database, `logs/`, `dbt/ta
   `build_reference_seeds.py`, and rerun. The loader skips files that are unchanged and
   verified, and loads only the new one in its own transaction. dbt then rebuilds from raw,
   because the models are small views and tables.
-- **A failed run:** the runner exits non-zero and `logs/pipeline.log` names the step. Every
-  step is safe to rerun. A bad file fails alone and the other files still load.
+- **A failed run:** the runner (or the container) exits non-zero and `pipeline.log` names the
+  step; later steps do not run. Every step is safe to rerun. A bad file fails alone and the other files still load.
 - **A failing data test:** `dbt build` skips every model downstream of it and the runner
-  stops, so the marts are never built on data that failed a check.
+  stops before the docs, so no mart is rebuilt on data that failed a check. Marts from an
+  earlier successful run stay in place until a run succeeds.
 
 ## Where to look when something goes wrong
 
+Paths are for a local run; in Docker they are under `output/` (for example
+`output/logs/pipeline.log`).
+
 - `logs/pipeline.log`: one line per step, with a run id and per-step timings.
+- `dbt/logs/dbt.log` and `dbt/target/run_results.json`: what dbt ran, and which test or model
+  failed and why.
 - `raw.load_log` in the database: one row per file per run (loaded, skipped or failed, with
   the reason).
 - `raw.extract_metadata`: the export's own variable and code metadata.
@@ -255,9 +279,9 @@ How this would run on AWS at full scale, and how other surveys would be added, i
 
 The report covers these in full. In short:
 
-- `inttech` (interest in technology) is not available in 2022 and was asked of ballots a and
-  half of b only in 2016 and 2018.
-- `news`, `tvhours` and `wwwhr` are not asked on ballot c; the model marks those rows
+- `inttech` (interest in technology) is not available in 2022 and was answered on ballot a
+  and half of b only in 2016 and 2018.
+- `news`, `tvhours` and `wwwhr` have no answers on ballot c; the model marks those rows
   `not_asked_on_ballot` rather than `inapplicable`. That classification is derived from
   observed coverage, not from the questionnaires, and is unverified until checked there.
 - In 2022 about half of every ballot has `.i` for `postlife` and `reliten`, most likely a
