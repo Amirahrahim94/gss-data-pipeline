@@ -38,36 +38,12 @@ Analysts query published tables through an Athena workgroup
 | Table catalogue | **Glue Data Catalog** | Register tables so Athena can find and query them |
 | Operations | **CloudWatch and SNS** | Keep execution evidence and notify on failure |
 
-The main design choice is Athena and Iceberg as the target, rather than promising that DuckDB
-will handle the full workload inside one Fargate task. That promise would need benchmarking,
-particularly when expanding thousands of variables into hundreds of millions of response rows.
+**Why Athena rather than DuckDB:** the full workload has not been shown to fit in one Fargate
+task, particularly when expanding thousands of variables into hundreds of millions of response
+rows. Athena avoids depending on that.
 
-**A simpler option to test first:** keep DuckDB in one larger Fargate task, write each run's
-Parquet files to a new S3 folder, and point analysts to that folder only after the checks pass.
-This would be cheaper and need less rewriting, but it depends on the full data fitting on one
-machine. If a benchmark showed that it does, this option could replace Athena for the
-transformations and Iceberg for storage.
-
-If dashboards or heavy concurrent use appear, the published tables could move to a warehouse such
-as Redshift or Snowflake. Terraform is not included: nothing here is deployed, and the brief makes
-it optional.
-
-### What can be reused and what must change
-
-The existing project still provides reusable work: validation rules, missing-value semantics,
-reference metadata, tests and analytical logic. However, the loader's storage handling, the dbt
-adapter and some SQL would need adaptation and testing. For example, the current DuckDB
-transactions and load log live inside one database file, so they do not carry over to S3 as they
-are.
-
-At full scale, I would also propose:
-
-- Processing new or corrected survey waves without rebuilding every historical wave.
-- Reading files in batches instead of parsing the entire cumulative export into Python memory.
-- Expanding selected variables into the long model, with all-variable expansion tested separately
-  if required.
-- Recording processed file versions and preventing overlapping writes.
-- Publishing results only after validation, with an explicit recovery procedure for failures.
+The validation rules, missing-value rules, reference metadata, tests and analytical logic can be
+reused. The loader's storage handling, the dbt adapter and some SQL would need adapting and testing.
 
 ### What happens during one run
 
@@ -118,7 +94,6 @@ terms.
 |---|---|---|---|---|---|
 | **American Time Use Survey** (US Bureau of Labor Statistics) | Diary records give another view of time spent watching TV and on religious activities, alongside the GSS's self-reported `tvhours` | About 8,000–10,000 respondents a year | CSV | Annual | Public; direct download |
 | **Pew Research Center Religious Landscape Study** | Evidence on religion raised in, prayer and attendance, including groups with few observations in these extracts (for example Muslim in Q1) | About 35,000 per wave | SPSS | Every 7–10 years | Free with registration; terms limit redistribution, so files stay private |
-| **World Values Survey** | Places the US findings alongside results from other countries | About 90,000 respondents per wave | CSV or SPSS | About every 5 years | Free for non-commercial use with registration |
 
 ### How each is ingested and modelled
 
@@ -143,9 +118,5 @@ differences. Similar labels alone would not establish that the measures are equi
 - Check that every observed code has a documented meaning or is explicitly flagged as unmapped.
 - Check observed coverage against the reference metadata, and use survey documentation to confirm
   eligibility and routing rules.
-- Compare selected results with published source figures where definitions match. Investigate
-  differences before setting an automated tolerance.
-- Record any comparison that loses detail, such as grouping different response scales into broader
-  categories.
 
 Restricted source files stay in private storage and are not committed to the repository.
