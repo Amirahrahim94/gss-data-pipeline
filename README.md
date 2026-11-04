@@ -291,6 +291,3 @@ Machine-specific files (`.venv/`, the database, `logs/`, `output/`, `dbt/target/
 
 See the [report](report/report.md) and the optional
 [AWS and additional-source sketch](docs/production_sketch.md).
-
-Approximately **16 hours** were spent on the assignment. The report explains the effort, AI use and
-priorities for further work.
