@@ -1,36 +1,47 @@
-"""Load raw survey extracts into DuckDB: the `raw` layer.
+"""Load downloaded survey files into the raw tables in DuckDB.
 
-For every file matching "input_files" in the config:
-  1. read and validate it (shared reader); any bad input rejects the whole file
-  2. skip it only if a successful load of this exact content (extract id + SHA-256)
-     is recorded in raw.load_log AND every stored row still matches the file
-  3. otherwise, in ONE transaction: delete that extract's old rows, insert its rows and
-     the export's own variables/codes metadata (raw.extract_metadata, the source for the
-     ref_* seeds),
-     check that respondent-years shared with other files have identical answers, write
-     the load log, commit. Any error rolls the file back and a "failed" log row is
-     written afterwards. A PRIMARY KEY on (extract_id, key columns) means the database
-     itself rejects a respondent-year stored twice for one extract.
+This script loads the files; dbt handles the later transformations.
+It reads the files selected by input_files in extract_config.json.
+The downloaded files are never changed.
 
-Each file is its own transaction, so a good file still loads when another fails.
-The run exits 1 if any file failed. Values are stored as text, as received.
+For each file:
+  1. Read and validate its records. Reject the whole file if a record is invalid.
+  2. Check whether the same file content is already loaded. Skip database writes
+     only when the stored rows and survey metadata still match the source file.
+  3. Otherwise, replace this extract's stored rows and survey metadata inside
+     one transaction: either all changes are saved, or none are.
+  4. Check records shared with other extracts. The same respondent in the same
+     survey year must have the same source values in every extract.
+  5. Save a successful-load entry before committing the transaction. If the
+     transaction fails, undo its changes and then record the failure separately.
 
-Extract identity: by default the file name, so a renamed file counts as a new extract.
-To keep one identity across renames, map the file name to a stable id in the config
-("extract_ids": {"file name": "id"}); rows and the log are then keyed by that id.
+The raw table keeps source fields as text, with source nulls kept as SQL NULL.
+A database primary key prevents a respondent-year appearing twice in one extract.
+The same respondent-year can appear in different extracts for traceability;
+this loader does not remove that overlap across files.
 
-A schema change (different columns from the loaded table) is rejected. To apply
-one, preserve the old database and rebuild from all source files into a new
-database path. There is deliberately no in-place refresh that could destroy a usable
-table if it failed part-way.
+Files are processed separately. If one file is rejected, the next is still tried.
+The command exits with status 1 if any file fails, so an automated runner can
+recognise that the run was unsuccessful.
 
-Evidence: raw.load_log (one row per file per run), raw.extract_metadata (current metadata per extract), and the text
-log logs/pipeline.log (run id on every line, tracebacks included).
+By default, a file's name identifies its extract. Renaming it therefore creates
+another extract identity. To retain the identity across renames, configure:
+    "extract_ids": {"file name": "stable id"}
 
-Settings: GSS_DB_PATH (database file) and GSS_LOG_DIR (log folder) may be set as
-environment variables; data settings are in source/config/extract_config.json.
+A different set of source columns is rejected. For an intentional schema change,
+keep the old database and rebuild all extracts into a new database file.
 
-Usage:  python source/pipeline/load_raw.py [--raw-dir D] [--config F] [--db F]
+Evidence of processing:
+  raw.load_log         - loaded, skipped and failed file attempts
+  raw.extract_metadata - the currently loaded variable and code definitions
+  logs/pipeline.log    - messages and detailed errors, with a run identifier
+
+Settings:
+  source/config/extract_config.json - input file pattern, keys and raw table
+  GSS_DB_PATH                      - optional database path override
+  GSS_LOG_DIR                      - optional log folder override
+
+Usage: python source/pipeline/load_raw.py [--raw-dir D] [--config F] [--db F]
 """
 import argparse
 import copy
@@ -55,41 +66,48 @@ ROOT = Path(__file__).resolve().parents[2]
 CONTROL_TABLES = {"load_log", "extract_metadata"}
 SAFE_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 META_COLUMNS = ["extract_id", "source_file", "file_sha256", "record_sha256", "run_id", "loaded_at"]
-# The reader rejects source columns with these names; fail early if the two lists ever differ.
+# Keep loader audit fields separate from survey fields. The reader must reserve the same names.
 assert set(META_COLUMNS) == RESERVED_COLUMNS
 
 logging.getLogger("load_raw").addHandler(logging.NullHandler())
 
 
 class LoadError(Exception):
-    """A file or the database cannot be loaded; the message says why."""
+    """An error that prevents a file or the load run from completing."""
 
 
 def now_utc():
+    """Return the current UTC time without timezone information for the database timestamp."""
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 def record_hash(row, columns):
-    """Fingerprint of one record's values, so shared respondent-years can be compared."""
+    """Create a SHA-256 fingerprint of the source values in one record.
+
+    Sort column names first so column order does not change the fingerprint.
+    Matching fingerprints are used to compare records shared by extracts."""
     payload = json.dumps([[c, None if row[c] is None else str(row[c])] for c in sorted(columns)])
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
 def quote(name):
+    """Check that a table or column name is allowed, then quote it for SQL."""
     if not SAFE_NAME.match(name):
         raise LoadError(f"unsafe column or table name: {name!r}")
     return f'"{name}"'
 
 
 def connect(db_path):
+    """Create the database folder if needed and open the DuckDB database."""
     db_path.parent.mkdir(parents=True, exist_ok=True)
     try:
         return duckdb.connect(str(db_path))
-    except duckdb.Error as error:  # e.g. another process holds the write lock
+    except duckdb.Error as error:  # For example, another process may already have the database open for writing.
         raise LoadError(f"cannot open {db_path}: {error}. Is another run using it?") from error
 
 
 def setup(con):
+    """Create the raw schema and the tables used to track loads and survey metadata."""
     con.execute("create schema if not exists raw")
     con.execute("""create table if not exists raw.load_log (
         run_id varchar, extract_id varchar, source_file varchar, file_sha256 varchar, status varchar,
@@ -100,17 +118,19 @@ def setup(con):
 
 
 def insert_rows(con, table, names, rows):
-    """Bulk insert validated rows inside the caller's existing transaction.
+    """Insert the prepared records in one bulk operation.
 
-    Python 3.12's QUOTE_NOTNULL writes NULL as unquoted empty, and all other
-    values (including an empty string) as quoted text. DuckDB is told not to
-    convert quoted empty values to NULL and not to infer column types.
-    The temporary file is closed before DuckDB opens it (required on Windows).
-    """
+    Write a temporary CSV so DuckDB can insert many rows together instead of
+    receiving one INSERT command per row. Use the caller's transaction.
+
+    Keep SQL NULL different from an empty string: Python writes None as an
+    unquoted empty field and an empty string as a quoted empty field. DuckDB
+    reads source fields as text, without guessing their types.
+    Close the CSV before DuckDB reads it so this also works on Windows."""
     if not rows:
         return
     columns = ", ".join(quote(c) for c in names)
-    # quote() also validates identifiers before they enter the SQL type map.
+    # The column names above have been checked before being included in this SQL.
     types = "{" + ", ".join(f"'{c}': 'VARCHAR'" for c in names) + "}"
     with tempfile.TemporaryDirectory(prefix="gss_bulk_") as directory:
         path = Path(directory) / "validated.csv"
@@ -125,6 +145,7 @@ def insert_rows(con, table, names, rows):
 
 
 def table_columns(con, table):
+    """Return the column names of a raw table in their stored order."""
     rows = con.execute(
         "select column_name from information_schema.columns "
         "where table_schema = 'raw' and table_name = ? order by ordinal_position",
@@ -133,22 +154,24 @@ def table_columns(con, table):
 
 
 def write_log(con, run_id, extract_id, name, sha, status, read, loaded, error, started, overlap=0):
+    """Add one file-attempt entry to raw.load_log on the current connection."""
     con.execute("insert into raw.load_log values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 [run_id, extract_id, name, sha, status, read, loaded, overlap, error, started, now_utc()])
 
 
 def metadata_json(extract):
-    """The export's own variables/codes sections as stable JSON text (input for the ref_* seeds)."""
+    """Save the export's variable and code definitions as consistently ordered JSON.
+
+    These definitions supply the reference seeds used by dbt."""
     return json.dumps(extract.metadata, sort_keys=True, ensure_ascii=False, allow_nan=False)
 
 
 def already_loaded(con, table, keys, columns, extract_id, sha, rows, metadata):
-    """True only if this exact content was loaded successfully and is still stored intact.
+    """Check whether this extract can safely be skipped.
 
-    Beyond the log entry, every stored row is re-fingerprinted from its stored values and
-    compared with the file, and the stored metadata must equal the file's, so truncated,
-    edited or mis-fingerprinted data forces a reload.
-    """
+    A matching file checksum in the log is not enough. Also check the table
+    columns, survey metadata, stored record fingerprints and source values.
+    Return False if any check fails so the file can be loaded again."""
     stored_columns = table_columns(con, table)
     if not stored_columns or set(stored_columns) - set(META_COLUMNS) != set(columns):
         return False
@@ -175,17 +198,17 @@ def already_loaded(con, table, keys, columns, extract_id, sha, rows, metadata):
 
 
 def previously_loaded(con, extract_id, sha):
-    """True if the log says this exact content was loaded successfully before."""
+    """Check whether the log records an earlier successful load of this file content."""
     return con.execute("select count(*) from raw.load_log where extract_id = ? and file_sha256 = ? "
                        "and status = 'loaded'", [extract_id, sha]).fetchone()[0] > 0
 
 
 def count_overlap(con, table, keys, extract_id):
-    """How many of this extract's respondent-years are already stored under another extract.
+    """Count this extract's respondent-years that also exist in another extract.
 
-    Counted at load time, so it depends on load order: the file loaded second reports the
-    overlap, the first reports 0. The order-independent total is logged at the end of each run.
-    """
+    This count reflects what is stored at that moment. On a fresh database,
+    the first file reports zero and the second reports the shared records.
+    The final run summary counts the overlap across all stored extracts."""
     same = " and ".join(f"b.{quote(k)} = a.{quote(k)}" for k in keys)
     return con.execute(
         f"select count(*) from raw.{quote(table)} a where a.extract_id = ? and exists "
@@ -194,7 +217,9 @@ def count_overlap(con, table, keys, extract_id):
 
 
 def count_shared(con, table, keys, conflicting=False):
-    """Respondent-years in more than one file; or only those whose answers differ."""
+    """Count respondent-years stored in multiple extracts.
+
+    If conflicting=True, count only keys with different source-value fingerprints."""
     key_sql = ", ".join(quote(k) for k in keys)
     having = "count(distinct record_sha256) > 1" if conflicting else "count(distinct extract_id) > 1"
     return con.execute(f"select count(*) from (select 1 from raw.{quote(table)} "
@@ -202,7 +227,7 @@ def count_shared(con, table, keys, conflicting=False):
 
 
 def check_shared_respondents(con, table, keys):
-    """Respondent-years in more than one file must have identical answers."""
+    """Reject the load if a shared respondent-year has different values across extracts."""
     conflicts = count_shared(con, table, keys, conflicting=True)
     if conflicts:
         key_sql = ", ".join(quote(k) for k in keys)
@@ -214,13 +239,14 @@ def check_shared_respondents(con, table, keys):
 
 
 def load_file(con, path, cfg, run_id, log):
-    """Load one file. Return a result dict with status loaded, skipped or failed."""
+    """Process one file and return its status, counts and any error message."""
     name, table, keys = path.name, cfg["raw_table"], cfg["key_columns"]
     extract_id = cfg.get("extract_ids", {}).get(name, name)
     started, timer = now_utc(), time.perf_counter()
     result = {"file": name, "status": "failed", "read": 0, "loaded": 0, "error": ""}
     sha = None
 
+    # Use one failure handler so rejected files get the same logging and result format.
     def fail(message):
         result["error"] = message
         log.error("%s: FAILED after %.1fs: %s", name, time.perf_counter() - timer, message)
@@ -231,7 +257,7 @@ def load_file(con, path, cfg, run_id, log):
         extract = read_extract(path, keys, cfg.get("records_key", "data"), cfg.get("max_file_bytes"))
     except ExtractError as error:
         return fail(str(error))
-    steps = {"read": time.perf_counter() - timer}  # seconds per step, shown in the log line
+    steps = {"read": time.perf_counter() - timer}  # Record how long reading took; later steps add their own timings.
     sha, result["read"] = extract.sha256, extract.record_count
     if extract.problems:
         return fail(f"{len(extract.problems)} bad record(s), file rejected; first: {extract.problems[0]}")
@@ -243,6 +269,7 @@ def load_file(con, path, cfg, run_id, log):
     except (LoadError, ValueError, TypeError) as error:
         return fail(str(error))
 
+    # Keep a consistent source-column order for record comparisons and insertion.
     ordered = list(next(iter(extract.rows.values())))
     if already_loaded(con, table, keys, ordered, extract_id, sha, extract.rows, metadata):
         result["status"] = "skipped"
@@ -259,6 +286,7 @@ def load_file(con, path, cfg, run_id, log):
               + [None if row[c] is None else str(row[c]) for c in ordered]
               for row in extract.rows.values()]
     steps["prepare"] = time.perf_counter() - mark
+    # Start the all-or-nothing replacement of this extract.
     con.begin()
     try:
         existing = table_columns(con, table)
@@ -271,6 +299,7 @@ def load_file(con, path, cfg, run_id, log):
             raise LoadError("column set differs from the loaded table; to apply a schema change, "
                             "preserve the old database and rebuild all source files into a new "
                             "database path")
+        # Replace only this extract; records belonging to other extracts stay in place.
         con.execute(f"delete from raw.{quote(table)} where extract_id = ?", [extract_id])
         mark = time.perf_counter()
         insert_rows(con, table, META_COLUMNS + ordered, values)
@@ -279,15 +308,17 @@ def load_file(con, path, cfg, run_id, log):
         con.execute("delete from raw.extract_metadata where extract_id = ?", [extract_id])
         con.execute("insert into raw.extract_metadata values (?, ?, ?, ?)",
                     [extract_id, metadata, run_id, loaded_at])
+        # Validate overlap before committing, so conflicting answers cannot be saved.
         check_shared_respondents(con, table, keys)
         overlap = count_overlap(con, table, keys, extract_id)
         write_log(con, run_id, extract_id, name, sha, "loaded", result["read"], len(values), None,
                   started, overlap)
         steps["checks"] = time.perf_counter() - mark
         mark = time.perf_counter()
+        # Save the rows, survey metadata and successful-load log entry together.
         con.commit()
         steps["commit"] = time.perf_counter() - mark
-    except Exception as error:  # roll back whatever went wrong, then record it
+    except Exception as error:  # Undo this file's transaction before saving a separate failure entry.
         con.rollback()
         log.debug("traceback for %s", name, exc_info=True)
         return fail(f"{type(error).__name__}: {error}")
@@ -299,7 +330,7 @@ def load_file(con, path, cfg, run_id, log):
 
 
 def run(raw_dir, cfg, db_path):
-    """Load every matching file; return a list of result dicts."""
+    """Find the configured input files, process each one and return their results."""
     run_id = f"{datetime.now():%Y%m%dT%H%M%S}-{uuid.uuid4().hex[:6]}"
     log = logging.LoggerAdapter(logging.getLogger("load_raw"), {"run_id": run_id})
     if cfg["raw_table"] in CONTROL_TABLES:
@@ -307,6 +338,7 @@ def run(raw_dir, cfg, db_path):
     paths = sorted(Path(raw_dir).glob(cfg["input_files"]))
     if not paths:
         raise LoadError(f"no files matching {cfg['input_files']} in {raw_dir}")
+    # Different input files must not accidentally replace the same extract identity.
     ids = [cfg.get("extract_ids", {}).get(p.name, p.name) for p in paths]
     if len(set(ids)) != len(ids):
         raise LoadError("two files share one extract id; check extract_ids in the config")
@@ -315,6 +347,7 @@ def run(raw_dir, cfg, db_path):
     con = connect(Path(db_path))
     try:
         setup(con)
+        # A returned failed status does not stop the next file from being attempted.
         results = [load_file(con, p, cfg, run_id, log) for p in paths]
         table, keys = cfg["raw_table"], cfg["key_columns"]
         if table_columns(con, table):
@@ -328,7 +361,7 @@ def run(raw_dir, cfg, db_path):
 
 
 class ConciseFormatter(logging.Formatter):
-    """Console output: the message only, with no traceback (the file log keeps it)."""
+    """Keep detailed error traces out of the console; retain them in the log file."""
 
     def format(self, record):
         record = copy.copy(record)
@@ -337,6 +370,7 @@ class ConciseFormatter(logging.Formatter):
 
 
 def main():
+    """Read command options, configure logging, run the loader and print the results."""
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("--raw-dir", type=Path, default=ROOT / "source/data/raw")
     p.add_argument("--config", type=Path, default=ROOT / "source/config/extract_config.json")
@@ -349,6 +383,7 @@ def main():
     pattern = "%(asctime)s %(levelname)s run=%(run_id)s %(message)s"
     logger = logging.getLogger("load_raw")
     logger.setLevel(logging.DEBUG)
+    # Show normal progress on screen; keep DEBUG details and error traces in the file.
     console = logging.StreamHandler()
     console.setLevel(logging.INFO)
     console.setFormatter(ConciseFormatter(pattern))
@@ -364,7 +399,7 @@ def main():
     except LoadError as error:
         run_failed.error("RUN FAILED: %s", error)
         sys.exit(1)
-    except Exception as error:  # unexpected: concise on screen, full traceback in the log file
+    except Exception as error:  # Show a short error on screen and save the full error trace to pipeline.log.
         run_failed.error("RUN FAILED unexpectedly: %s: %s (traceback in %s)",
                          type(error).__name__, error, log_dir / "pipeline.log", exc_info=True)
         sys.exit(1)

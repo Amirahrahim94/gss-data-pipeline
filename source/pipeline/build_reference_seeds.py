@@ -1,26 +1,39 @@
-"""Build the dbt reference seeds (ref_*) from the extracts' own variable and code metadata.
+"""Create the CSV reference files that explain the survey data to dbt.
 
-Reads every file matching "input_files" in the config with the shared reader and writes
-three CSV files that dbt loads with `dbt seed`:
+A dbt seed is a CSV file that dbt loads into the database as a reference table.
+This script reads the configured survey extracts and creates three seed files:
 
-  ref_variables.csv          one row per variable: label and question text
-  ref_codes.csv              one row per variable and code: label, and its response type
-                             ("answer" or the kind of special missing value)
-  ref_variable_validity.csv  one row per variable, survey year and ballot: whether
-                             anyone on that ballot answered (is_asked, observed)
+  ref_variables.csv
+      Lists each variable, its description and its question text.
 
-is_asked is observed, not read from the codebook: it is true when at least one respondent
-in that year and ballot gave a real answer. The export carries no questionnaire design, so
-this is the best machine-readable evidence available. It does not prove questionnaire
-assignment: the GSS questionnaires are the authority, and a disagreement with them should be
-fixed here. dbt uses the seed to tell "not on this
-ballot" apart from "did not apply to this respondent", which share the code ".i".
+  ref_codes.csv
+      Explains each variable's codes and readable labels. Also identifies
+      genuine answers and special missing types, such as "don't know".
 
-The seeds are committed so the meaning of every code is reviewable without running
-anything. Rerunning this script gives byte-identical files. If the extracts disagree about
-a variable or a code, it stops and writes nothing: one set of seeds cannot describe both.
+  ref_variable_validity.csv
+      Records whether at least one real answer was observed for each variable,
+      survey year and ballot (questionnaire version).
 
-Usage:  python source/pipeline/build_reference_seeds.py [--raw-dir D] [--config F] [--out-dir D]
+Important: the column is_asked describes observed answers, not a confirmed
+questionnaire rule. True means at least one real answer was found in that group.
+False means no real answer was found; it does not prove the question was not
+asked. Downstream dbt models use this pattern to infer not_asked_on_ballot
+from some .i values. That interpretation still needs questionnaire verification.
+
+The source files are read without being changed. Shared respondent-year keys
+are counted once when checking answer coverage. The loader is responsible for
+checking that overlapping records have identical values; this script does not
+repeat that check.
+
+If extracts disagree about variable or code definitions, stop before writing
+the seed files. All three sets of rows are prepared before writing starts,
+but writing the three CSV files is not one atomic operation.
+
+Commit the generated seeds so reviewers can inspect the definitions without
+running the pipeline. Rows are sorted to keep the output stable when the
+inputs and configuration are unchanged.
+
+Usage: python source/pipeline/build_reference_seeds.py [--raw-dir D] [--config F] [--out-dir D]
 """
 import argparse
 import csv
@@ -36,15 +49,16 @@ LETTER = re.compile(r"^\.([a-z]):\s*(.*)$")
 
 
 class SeedError(Exception):
-    """The metadata cannot be turned into one consistent set of seeds."""
+    """An error that prevents the extracts from sharing one consistent set of reference definitions."""
 
 
 def collect(raw_dir, cfg):
-    """Return (variables, codes, records) from every matching extract.
+    """Read the matching extracts and collect definitions and respondent records.
 
-    variables and codes must agree across extracts. records holds each respondent-year once
-    ({key: record}); the loader already guarantees shared respondent-years are identical.
-    """
+    Return the variable definitions, code definitions and records keyed by
+    respondent-year. For a key found in several files, keep the first record.
+    This function checks agreement between metadata sections, not between
+    overlapping respondents' answers."""
     paths = sorted(Path(raw_dir).glob(cfg["input_files"]))
     if not paths:
         raise SeedError(f"no files matching {cfg['input_files']} in {raw_dir}")
@@ -57,9 +71,10 @@ def collect(raw_dir, cfg):
             raise SeedError(f"{path.name}: no {' or '.join(missing)} section in the export")
         found[path.name] = (extract.metadata["variables"], extract.metadata["codes"])
         for key, record in extract.rows.items():
+            # Keep the first record for a shared key so coverage does not count it twice.
             records.setdefault(key, record)
     first_name, (first_variables, first_codes) = next(iter(found.items()))
-    # Sorted before comparing: two exports may list the same metadata in a different order.
+    # Compare sorted entries so a different list order alone does not cause a mismatch.
     for name, (variables, codes) in found.items():
         if sorted(map(json.dumps, variables)) != sorted(map(json.dumps, first_variables)):
             raise SeedError(f"{name} and {first_name} describe the variables differently")
@@ -69,7 +84,11 @@ def collect(raw_dir, cfg):
 
 
 def build_tables(variables, codes):
-    """Turn the export's metadata into the rows of the two seeds."""
+    """Prepare the rows for ref_variables.csv and ref_codes.csv.
+
+    Reject repeated variable definitions, repeated codes within a variable,
+    and codes that cannot be converted to whole numbers. Classify special
+    missing labels using the definitions shared with the extract reader."""
     variable_rows = {}
     for item in variables:
         name = item["name"]
@@ -88,7 +107,7 @@ def build_tables(variables, codes):
             raise SeedError(f"{variable}: code {code} is defined twice")
         match = LETTER.match(label)
         letter = match[1] if match else ""
-        # An unknown letter stays a missing type under its own name, never read as an answer.
+        # Keep an unfamiliar missing-code letter as missing_<letter>; do not call it an answer.
         response_type = MISSING_TYPES.get(letter, f"missing_{letter}") if match else "answer"
         code_rows[(variable, code)] = [variable, code, label, response_type, letter]
 
@@ -96,13 +115,21 @@ def build_tables(variables, codes):
 
 
 def is_real_answer(value):
-    """A value counts as an answer unless it is empty or a special missing label."""
+    """Check whether a value is non-empty and is not a special missing label.
+
+    This does not check whether the answer is valid for its variable.
+    Text such as "None" or "Never", and the number zero, can be real answers."""
     return value is not None and str(value).strip() != "" and not MISSING_LABEL.match(str(value))
 
 
 def build_validity(records, cfg):
-    """One row per (variable, survey year, ballot): whether anyone there gave a real answer."""
+    """Summarise observed answer coverage by variable, year and ballot.
+
+    is_asked becomes true if any record in that group has a non-empty value
+    without a special missing label. Otherwise it stays false. This is an
+    observation from the extracts, not proof of questionnaire assignment."""
     year_column, ballot_column = cfg["year_column"], cfg["ballot_column"]
+    # Keys and ballot are not survey questions, so summarise only the other source fields.
     skip = set(cfg["key_columns"]) | {ballot_column}
     asked = {}
     for record in records.values():
@@ -111,12 +138,15 @@ def build_validity(records, cfg):
             if variable in skip:
                 continue
             key = (variable, year, ballot)
+            # Once an answer is found, this group stays true even if other records are missing.
             asked[key] = asked.get(key, False) or is_real_answer(value)
+    # Sort rows and write booleans as the text true/false for the CSV seed.
     return [[variable, year, ballot, str(is_asked).lower()]
             for (variable, year, ballot), is_asked in sorted(asked.items())]
 
 
 def write_csv(path, header, rows):
+    """Write one seed file with a header and its prepared rows, replacing an existing file."""
     with path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle, lineterminator="\n")
         writer.writerow(header)
@@ -124,6 +154,9 @@ def write_csv(path, header, rows):
 
 
 def main():
+    """Read settings, prepare the three seeds, then write them to the output folder.
+
+    If a handled error occurs during preparation, exit before writing files."""
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("--raw-dir", type=Path, default=ROOT / "source/data/raw")
     p.add_argument("--config", type=Path, default=ROOT / "source/config/extract_config.json")
@@ -131,11 +164,13 @@ def main():
     args = p.parse_args()
     try:
         cfg = json.loads(args.config.read_text(encoding="utf-8"))
+        # Prepare every seed before opening any output file.
         variables_meta, codes_meta, records = collect(args.raw_dir, cfg)
         variables, codes = build_tables(variables_meta, codes_meta)
         validity = build_validity(records, cfg)
     except (ExtractError, SeedError, KeyError, OSError) as error:
         sys.exit(f"Seeds not written: {type(error).__name__}: {error}")
+    # Write the three files in order. A write failure can leave only some files updated.
     args.out_dir.mkdir(parents=True, exist_ok=True)
     write_csv(args.out_dir / "ref_variables.csv", ["variable_name", "label", "question_text"], variables)
     write_csv(args.out_dir / "ref_codes.csv",
