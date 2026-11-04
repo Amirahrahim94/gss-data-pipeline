@@ -59,6 +59,7 @@ def collect(raw_dir, cfg):
         for key, record in extract.rows.items():
             records.setdefault(key, record)
     first_name, (first_variables, first_codes) = next(iter(found.items()))
+    # Sorted before comparing: two exports may list the same metadata in a different order.
     for name, (variables, codes) in found.items():
         if sorted(map(json.dumps, variables)) != sorted(map(json.dumps, first_variables)):
             raise SeedError(f"{name} and {first_name} describe the variables differently")
@@ -87,6 +88,7 @@ def build_tables(variables, codes):
             raise SeedError(f"{variable}: code {code} is defined twice")
         match = LETTER.match(label)
         letter = match[1] if match else ""
+        # An unknown letter stays a missing type under its own name, never read as an answer.
         response_type = MISSING_TYPES.get(letter, f"missing_{letter}") if match else "answer"
         code_rows[(variable, code)] = [variable, code, label, response_type, letter]
 

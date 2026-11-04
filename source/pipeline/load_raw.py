@@ -55,6 +55,7 @@ ROOT = Path(__file__).resolve().parents[2]
 CONTROL_TABLES = {"load_log", "extract_metadata"}
 SAFE_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 META_COLUMNS = ["extract_id", "source_file", "file_sha256", "record_sha256", "run_id", "loaded_at"]
+# The reader rejects source columns with these names; fail early if the two lists ever differ.
 assert set(META_COLUMNS) == RESERVED_COLUMNS
 
 logging.getLogger("load_raw").addHandler(logging.NullHandler())

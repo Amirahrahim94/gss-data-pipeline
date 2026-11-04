@@ -1,7 +1,9 @@
 {#- One row per respondent-year: who the respondent is, which ballot and weight they carry.
 
     Demographics come from the classified long table, not from staging, so a special missing
-    code can never sit in a demographic column looking like an answer. Each demographic has a
+    code can never sit in a demographic column looking like an answer. The max() ... filter
+    pattern turns long rows into columns; a respondent has one row per variable, so max() only
+    picks that one value. Each demographic has a
     readable value that is null unless the respondent gave a real answer, and a
     <variable>_response_type column that says what the null means (dont_know, no_answer, ...).
       - age_number   age in years; 89 means "89 or older" (top-coded)
