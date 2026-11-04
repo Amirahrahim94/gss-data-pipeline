@@ -4,6 +4,14 @@
     matched to ref_codes by (variable, label) to get its code and response_type:
       - 'answer'            a real answer
       - a missing kind      e.g. 'inapplicable', 'no_answer', 'dont_know'
+      - 'not_asked_on_ballot'  the source says ".i: Inapplicable", and ref_variable_validity
+                               shows nobody on this ballot answered it in this year. This
+                               is derived from observed coverage, not read from the
+                               questionnaires: it is an inference until verified there.
+                               The GSS uses ".i" for both "not on your ballot" and "did not
+                               apply to you"; the seed separates them so neither is mistaken
+                               for the other. ".i" on a ballot that was asked stays
+                               'inapplicable'.
       - 'answer' with answer_number   a numeric answer the code list does not enumerate
                                       (age 45, tvhours 3) for the variables in numeric_variables;
                                       listed labels such as "0 hours" or "89 or older" take their
@@ -26,7 +34,7 @@ long_form as (
 
     {% for variable in var('answer_variables') %}
     select
-        respondent_year_id, survey_year, respondent_id, weight,
+        respondent_year_id, survey_year, respondent_id, ballot, weight,
         '{{ variable }}'                  as variable_name,
         cast({{ variable }} as varchar)   as answer_label
     from respondents
@@ -47,12 +55,20 @@ code_lookup as (
     from {{ ref('ref_codes') }}
     group by variable_name, label
 
+),
+
+validity as (
+
+    select variable_name, survey_year, ballot, is_asked
+    from {{ ref('ref_variable_validity') }}
+
 )
 
 select
     l.respondent_year_id,
     l.survey_year,
     l.respondent_id,
+    l.ballot,
     l.weight,
     l.variable_name,
     l.answer_label,
@@ -60,6 +76,7 @@ select
     coalesce(c.code_is_ambiguous, false) as code_is_ambiguous,
     case
         when l.answer_label is null then 'null_in_source'
+        when c.response_type = 'inapplicable' and v.is_asked = false then 'not_asked_on_ballot'
         when c.response_type is not null then c.response_type
         when l.variable_name in ({{ "'" ~ var('numeric_variables') | join("', '") ~ "'" }})
              and try_cast(l.answer_label as double) is not null then 'answer'
@@ -74,3 +91,7 @@ from long_form as l
 left join code_lookup as c
     on c.variable_name = l.variable_name
    and c.label = l.answer_label
+left join validity as v
+    on v.variable_name = l.variable_name
+   and v.survey_year = l.survey_year
+   and v.ballot = l.ballot

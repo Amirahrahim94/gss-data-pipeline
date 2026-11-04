@@ -9,23 +9,32 @@ sources:
         description: >
           One row per respondent-year per extract. A respondent-year that appears in
           more than one extract appears once for each of them, with identical answers.
+          Besides the columns below, there is one text column per GSS variable in the extract.
         columns:
           - name: extract_id
             description: Which extract the row came from (the file name unless mapped in the config).
-            tests:
+            data_tests:
               - not_null
           - name: year
             description: Survey year. With id_ it identifies a respondent-year.
-            tests:
+            data_tests:
               - not_null
           - name: id_
             description: Respondent id; repeats every survey year, so it is unique only within a year.
-            tests:
+            data_tests:
               - not_null
+          - name: source_file
+            description: File name the row was read from.
+          - name: file_sha256
+            description: Fingerprint of the whole source file, used to skip unchanged files on rerun.
           - name: record_sha256
             description: Fingerprint of the record's values, used to compare shared respondent-years.
-            tests:
+            data_tests:
               - not_null
+          - name: run_id
+            description: Loader run that wrote the row (matches logs/pipeline.log and load_log).
+          - name: loaded_at
+            description: When the row was loaded.
       - name: extract_metadata
         description: The export's own variable and code metadata, one row per extract (source for the ref_* seeds).
       - name: load_log

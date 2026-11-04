@@ -22,6 +22,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 LOG_DIR = Path(os.environ.get("GSS_LOG_DIR", ROOT / "logs"))
 
+# requirements.txt pins every package but cannot pin Python itself, and the pinned versions
+# were tested on 3.12 only. Refusing other versions keeps "a run next month" the same as today.
+PYTHON_VERSION = (3, 12)
+
 # The loader and dbt must use the same database file. profiles.yml's own default is a relative
 # path that only works from inside the dbt folder, so every step gets the absolute path here
 # unless GSS_DB_PATH is already set.
@@ -62,4 +66,7 @@ def run(steps):
 
 
 if __name__ == "__main__":
+    if sys.version_info[:2] != PYTHON_VERSION:
+        sys.exit(f"Python {'.'.join(map(str, PYTHON_VERSION))} is required (found "
+                 f"{sys.version.split()[0]}); see Setup in the README")
     sys.exit(run(STEPS))

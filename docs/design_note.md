@@ -51,7 +51,8 @@ variable needs only new extract columns and seed rows.
 
 **Semantic metadata** lives in version-controlled seeds (`ref_*`): for each variable, what
 each code means, whether it is an answer or a kind of missing data, and the years and
-ballots where it is valid. Models read the seeds and do not repeat them.
+ballots where it is valid. Models read the seeds and do not repeat them. (Section 8 says how
+the validity seed was built.)
 
 ## 4. Missing values and extensibility
 
@@ -109,4 +110,22 @@ committed load. The full behaviour is described in the README and report.
 
 ## 8. Divergences
 
-*To be completed after the build.*
+Where the build differs from this plan, and why.
+
+| plan | built | why |
+|---|---|---|
+| `marts` would include a wide view for the six questions | Not built. The analyses read `fct_response` and `dim_respondent` directly | Each question needs two or three variables, which a filtered CTE gives just as clearly. A wide view would hard-code the six questions into the model, which the brief asks us not to do, and would need a new column for every new variable |
+| Seeds would hold "the years and ballots where it is valid" | `ref_variable_validity`: one row per variable, year and ballot with `is_asked`. Derived from the extracts (any real answer there), not typed from the codebook | The export carries code metadata but no questionnaire design. Deriving it is reproducible and a test (`assert_validity_seed_matches_data`) fails if the seed and the data drift apart; the codebook remains the authority |
+| One response type for `.i` (`inapplicable`) | `.i` on a ballot where nobody answered the question that year becomes `not_asked_on_ballot` (a derived classification, unverified against the questionnaires); elsewhere it stays `inapplicable` | The GSS uses `.i` for both "not on your ballot" and "did not apply to you". 10,576 response rows (ballot c for `news`, `tvhours` and `wwwhr` in all three years, and for `inttech` in 2016 and 2018) were otherwise indistinguishable from genuine inapplicability |
+| Staging carries demographics through to `dim_respondent` | `dim_respondent` takes `sex`, `region`, `educ`, `age` and work status (`is_working`) from the classified long table; the value is null unless it is a real answer, with a `<variable>_response_type` column alongside | A special missing label in a demographic column could be grouped as if it were an answer |
+| Percentages unweighted unless stated (assumption 2) | The analyses report weighted shares and means, and unweighted counts (`n`, `respondents`) for group sizes | Weighted shares estimate the population; unweighted counts show how much evidence sits behind each figure |
+| Marts as plain tables | `fct_response` is written sorted by `variable_name`, `survey_year` | Every analysis filters on one variable; sorted rows let DuckDB skip row groups. On a 100× copy, Q1 read 8 of 129 row groups per scan instead of 129 (report, section 7); the copy tests the layout, not realistic full-scale performance |
+| Pinned Python packages (section 5) | Docker image as the recommended way to run, base image fixed by digest; a virtual environment remains an alternative | Pins the operating system and Python as well as the packages, so the run does not depend on the reviewer's machine |
+| — | `fct_variable_coverage` (one row per variable, year and ballot) | Added so an analyst can see where each variable is answered without reading the profile |
+
+Still as planned: the respondent-year key, the four layers, DuckDB, and the loader's
+transaction-per-file behaviour.
+
+Not resolved: in 2022 about half of every ballot (a, b and c alike) has `.i` for `postlife` and
+`reliten`, while the other half answered. This looks like a split questionnaire form within ballots, which the
+extract does not carry, so these stay `inapplicable`. The Q2 analysis says so.

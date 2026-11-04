@@ -2,54 +2,125 @@ version: 2
 
 models:
   - name: dim_respondent
-    description: One row per respondent-year (about 8,759 here) with demographics, ballot and weight.
+    description: >
+      One row per respondent-year (8,759 here) with ballot, weight and demographics. A
+      demographic value is NULL unless it is a real answer; its _response_type column says why.
     columns:
       - name: respondent_year_id
         description: Survey year and respondent id, e.g. 2018-1042. Identifies one respondent in one year.
         data_tests: [not_null, unique]
       - name: survey_year
+        description: Survey year (2016, 2018 or 2022 here).
         data_tests: [not_null]
+      - name: respondent_id
+        description: Respondent id within the survey year; the same number in another year is a different person.
+      - name: ballot
+        description: Questionnaire ballot (a, b or c). Some questions are put to some ballots only.
       - name: weight
-        description: Post-stratification sample weight (wtssnrps). Use it for population shares, not for group sizes.
+        description: >
+          Post-stratification sample weight (wtssnrps), mean 1 within each year. Use it for
+          population shares and means, not for group sizes. Pooled across years it gives each
+          year influence in proportion to its sample size.
         data_tests: [not_null]
       - name: extract_count
         description: How many extracts held this respondent-year (2 means it is in both cuts).
+      - name: sex
+        description: Sex as answered (MALE, FEMALE); NULL when not a real answer.
+      - name: sex_response_type
+        description: answer, or the kind of missing value for sex.
+        data_tests: [not_null]
+      - name: region
+        description: Region of interview; NULL when not a real answer.
+      - name: region_response_type
+        description: answer, or the kind of missing value for region.
+        data_tests: [not_null]
+      - name: educ
+        description: Highest year of school completed as a label (e.g. "12th grade"); NULL when not a real answer.
+      - name: educ_years
+        description: Highest year of school completed as a number (0-20; 20 means 8 or more years of college).
+      - name: educ_response_type
+        description: answer, or the kind of missing value for educ.
+        data_tests: [not_null]
       - name: age_number
-        description: Age in years; 89 means "89 or older" (top-coded). Null for missing kinds.
+        description: Age in years; 89 means "89 or older" (top-coded). NULL for missing kinds.
+      - name: age_response_type
+        description: answer, or the kind of missing value for age.
+        data_tests: [not_null]
+      - name: work_status
+        description: Labour force status as answered (wrkstat), e.g. "Working full time", "Retired"; NULL when not a real answer.
+      - name: work_status_response_type
+        description: answer, or the kind of missing value for wrkstat.
+        data_tests: [not_null]
+      - name: is_working
+        description: >
+          True for working full time, part time, or with a job but temporarily away; false for
+          any other real work_status; NULL when wrkstat has no real answer.
 
   - name: fct_response
-    description: One row per respondent-year per question, with the answer classified.
+    description: >
+      One row per respondent-year per question, with the answer classified. Missing kinds are
+      kept as rows, so "not asked" can be counted next to the answers.
     columns:
       - name: respondent_year_id
+        description: Respondent-year key; joins to dim_respondent.
         data_tests:
           - not_null
           - relationships:
               arguments:
                 to: ref('dim_respondent')
                 field: respondent_year_id
+      - name: survey_year
+        description: Survey year, repeated here so a filter by year needs no join.
       - name: variable_name
-        data_tests:
-          - relationships:
-              arguments:
-                to: ref('ref_variables')
-                field: variable_name
-      - name: response_type
-        description: "'answer' for a real answer, otherwise the kind of missing value."
-      - name: is_answer
-        data_tests: [not_null]
-
-  - name: fct_variable_coverage
-    description: >
-      Where each variable is valid. One row per variable, survey year and ballot, counting real
-      answers, respondents not asked or not applicable, and respondents with no usable answer.
-    columns:
-      - name: variable_name
+        description: GSS variable name; ref_variables describes it.
         data_tests:
           - not_null
           - relationships:
               arguments:
                 to: ref('ref_variables')
                 field: variable_name
+      - name: answer_label
+        description: The value as received (a readable answer, or the special missing label).
+      - name: answer_code
+        description: The GSS code for the label; NULL for unlisted numeric answers and ambiguous labels.
+      - name: answer_number
+        description: Numeric answer for age, tvhours and wwwhr; NULL otherwise.
+      - name: response_type
+        description: "'answer' for a real answer, otherwise the kind of missing value (see int_gss__responses_long)."
+        data_tests: [not_null]
+      - name: is_answer
+        description: True only for a genuine answer. Filter on it before computing any share or mean.
+        data_tests: [not_null]
+
+  - name: fct_variable_coverage
+    description: >
+      Where each variable is valid. One row per variable, survey year and ballot, counting real
+      answers, respondents not asked, inapplicable, and respondents with no usable answer.
+    columns:
+      - name: variable_name
+        description: GSS variable name.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('ref_variables')
+                field: variable_name
+      - name: survey_year
+        description: Survey year.
+      - name: ballot
+        description: Questionnaire ballot.
+      - name: respondents
+        description: Respondent-years in this year and ballot.
+      - name: answered
+        description: Respondent-years with a real answer.
+      - name: not_asked
+        description: Not in the survey that year, not in this data release, or not_asked_on_ballot (derived from observed coverage; see int_gss__responses_long).
+      - name: inapplicable
+        description: The question was on this ballot but did not apply to the respondent (".i").
+      - name: no_usable_answer
+        description: Don't know, no answer, skipped on the web and similar.
+      - name: unweighted_pct_answered
+        description: answered as a percentage of respondents, unweighted (it measures coverage, not a population share).
       - name: is_asked
-        description: True when at least one respondent gave a real answer in this year and ballot.
+        description: From ref_variable_validity; true when anyone on this ballot answered in this year. Observed, not proof of questionnaire assignment.
         data_tests: [not_null]

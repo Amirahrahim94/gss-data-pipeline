@@ -2,28 +2,54 @@ version: 2
 
 models:
   - name: int_gss__responses_long
-    description: One row per respondent-year per question, with every answer classified.
+    description: >
+      One row per respondent-year per question, with every answer classified using the
+      ref_codes and ref_variable_validity seeds. Generic: a new variable needs only new extract
+      columns, an answer_variables entry and rebuilt seeds.
     columns:
       - name: respondent_year_id
+        description: Respondent-year key, "<survey_year>-<respondent_id>".
         data_tests: [not_null]
+      - name: survey_year
+        description: Survey year.
+      - name: respondent_id
+        description: Respondent id within the survey year.
+      - name: ballot
+        description: Questionnaire ballot; with survey_year it decides whether a question was asked.
+      - name: weight
+        description: Survey weight (wtssnrps), carried so aggregates need no extra join.
       - name: variable_name
+        description: GSS variable name.
         data_tests:
           - not_null
           - relationships:
               arguments:
                 to: ref('ref_variables')
                 field: variable_name
+      - name: answer_label
+        description: >
+          The value as received, e.g. "Every day" or ".i:  Inapplicable". Never altered.
       - name: answer_code
         description: The code in ref_codes for this label. NULL when the label has no code (a numeric answer) or maps to more than one (see code_is_ambiguous).
       - name: code_is_ambiguous
         description: True when the label is defined under more than one code in ref_codes, so the code cannot be chosen from the label.
         data_tests: [not_null]
       - name: response_type
+        description: >
+          "answer" for a genuine answer; otherwise the kind of missing value.
+          not_asked_on_ballot is ".i" on a ballot where ref_variable_validity shows nobody
+          answered in that year: a derived classification, unverified against the
+          questionnaires. inapplicable is ".i" anywhere else. Any value outside the list
+          (including "unmapped") fails the accepted_values test.
         data_tests:
           - not_null
           - accepted_values:
               arguments:
-                values: [answer, null_in_source, inapplicable, no_answer, dont_know, skipped_on_web,
-                         unavailable_that_year, unavailable_in_release, refused, no_job,
-                         not_applicable_or_not_imputable, combined_dk_na_iap, reserve_code,
-                         uncodable, missing_birthdate, not_imputable, ambiguous_label]
+                values: [answer, null_in_source, inapplicable, not_asked_on_ballot, no_answer,
+                         dont_know, skipped_on_web, unavailable_that_year, unavailable_in_release,
+                         refused, no_job, not_applicable_or_not_imputable, combined_dk_na_iap,
+                         reserve_code, uncodable, missing_birthdate, not_imputable, ambiguous_label]
+      - name: answer_number
+        description: >
+          The answer as a number for numeric_variables (age, tvhours, wwwhr); listed labels
+          such as "89 or older" take their code. NULL for every missing kind.
