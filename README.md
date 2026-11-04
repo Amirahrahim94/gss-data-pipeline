@@ -112,9 +112,8 @@ Docker writes its results to the local `output/` folder, which is not committed:
 
 **Why Docker:** the pipeline needs no server, cloud or credentials, so the environment is all
 there is to package. The base image is fixed by digest (Debian, Python 3.12.10) and every package
-is pinned in `requirements.txt`, so a run next month behaves like a run today. Terraform and AWS
-services provision cloud infrastructure, which the core pipeline does not need; they belong to
-the [production sketch](docs/production_sketch.md).
+is pinned in `requirements.txt`, so a run next month behaves like a run today. An AWS design is described, not built, in the
+[production sketch](docs/production_sketch.md).
 
 ### Option B: local Python
 
