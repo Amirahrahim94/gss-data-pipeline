@@ -1,5 +1,5 @@
 -- Q1. How is prayer frequency distributed among respondents, by the religion they were
--- raised in?  Variables: pray (prayer frequency), relig16 (religion at age 16).
+-- raised in?  Variables: pray (prayer frequency), relig16 (religion in which raised).
 -- Rows with is_answer = false are respondents who were not asked or gave no usable answer;
 -- they are kept so the reader sees how many there are. pct_in_group is the weighted share
 -- within a religion, among answers (is_answer) or among non-answers (not is_answer).

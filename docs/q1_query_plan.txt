@@ -1,0 +1,191 @@
+Q1 query plans (DuckDB EXPLAIN ANALYZE), q1_prayer_by_religion_raised.sql
+Timings vary between runs; 'Row Groups Scanned' is the figure to compare.
+Regenerate the comparison with: python source/pipeline/benchmark_sort_order.py
+
+
+======================================================================
+1. REAL DATA, sorted fct_response (157,662 rows)
+======================================================================
+
+╭─ Summary ───────────╮
+│ Total Time: 0.0111s │
+│ Data Read: 262.1 kB │
+╰─────────────────────╯
+╭─ Order By ──────────────────────────────────────────────────────╮
+│ Order By: religion_raised ASC, is_answer DESC, respondents DESC │
+│ 102 rows                                                    0µs │
+╰────────────────────────────────┬────────────────────────────────╯
+╭─ Projection ───────────────────┴────────────────────────────────╮
+│ Projections: religion_raised, prayer_frequency, is_answer,      │
+│              respondents, pct_in_group                          │
+│ 102 rows                                                    0µs │
+╰────────────────────────────────┬────────────────────────────────╯
+╭─ Projection ───────────────────┴────────────────────────────────╮
+│ Projections: #0, #1, #2, #3, #4, #5                             │
+│ 102 rows                                                    0µs │
+╰────────────────────────────────┬────────────────────────────────╯
+╭─ Window ───────────────────────┴────────────────────────────────╮
+│ Projections:                                                    │
+│ sum(sum(weight)) OVER (PARTITION BY religion_raised, is_answer) │
+│ 102 rows                                                 10.0ms │
+╰────────────────────────────────┬────────────────────────────────╯
+╭─ Hash Group By ────────────────┴────────────────────────────────╮
+│ Groups: #0, #1, #2                                              │
+│ Aggregates: count_star(), sum(#3)                               │
+│ 102 rows                                                    0µs │
+╰────────────────────────────────┒┎───────────────────────────────╯
+╭─ Projection ───────────────────┚┖───────────────────────────────╮
+│ Projections: religion_raised, prayer_frequency, is_answer,      │
+│              weight                                             │
+│ 8,759 rows                                                  0µs │
+╰────────────────────────────────┒┎───────────────────────────────╯
+╭─ Hash Join ────────────────────┚┖───────────────────────────────╮
+│ Join Type: INNER                                                │
+│ Conditions:                                                     │
+│ respondent_year_id = respondent_year_id                         │
+│ 8,759 rows                                                  0µs │
+╰────────────────────────────────┰┰───────────────────────────────╯
+                                 ┃┠───────────────────────────────────────────────────────────────┰┒
+╭─ Table Scan ───────────────────┚┖───────────────────────────────╮  ╭─ Hash Join ────────────────┚┖───────────────────────────╮
+│ Table: gss.marts.fct_response                                   │  │ Join Type: INNER                                        │
+│ Type: Sequential Scan                                           │  │ Conditions:                                             │
+│ Projections: respondent_year_id, answer_label, is_answer        │  │ respondent_year_id = respondent_year_id                 │
+│ Filters: variable_name = 'relig16'                              │  │ 8,759 rows                                          0µs │
+│ Dynamic Filters:                                                │  ╰────────────────────────────┰┰───────────────────────────╯
+│ optional: respondent_year_id IN PRF(respondent_year_id)         │                               ┃┠────────────────────────────────────────────────┰┒
+│ Row Groups Scanned: 1 / 2                                       │  ╭─ Table Scan ───────────────┚┖───────────────────────────╮  ╭─ Table Scan ────┚┖───────────────╮
+│ 8,759 rows                                                  0µs │  │ Table: gss.marts.fct_response                           │  │ Table: gss.marts.dim_respondent  │
+╰─────────────────────────────────────────────────────────────────╯  │ Type: Sequential Scan                                   │  │ Type: Sequential Scan            │
+                                                                     │ Projections: respondent_year_id, answer_label,          │  │ Projections: respondent_year_id, │
+                                                                     │              is_answer                                  │  │              weight              │
+                                                                     │ Filters: variable_name = 'pray'                         │  │ Row Groups Scanned: 1 / 1        │
+                                                                     │ Dynamic Filters:                                        │  │ 8,759 rows                   0µs │
+                                                                     │ optional: respondent_year_id IN PRF(respondent_year_id) │  ╰──────────────────────────────────╯
+                                                                     │ Row Groups Scanned: 1 / 2                               │
+                                                                     │ 8,759 rows                                          0µs │
+                                                                     ╰─────────────────────────────────────────────────────────╯
+
+
+======================================================================
+2. 100x COPY, BEFORE sorting (appended), 15,766,200 rows
+======================================================================
+
+╭─ Summary ──────────╮
+│ Total Time: 0.658s │
+╰────────────────────╯
+╭─ Order By ──────────────────────────────────────────────────────╮
+│ Order By: religion_raised ASC, is_answer DESC, respondents DESC │
+│ 102 rows                                                    0µs │
+╰────────────────────────────────┬────────────────────────────────╯
+╭─ Projection ───────────────────┴────────────────────────────────╮
+│ Projections: religion_raised, prayer_frequency, is_answer,      │
+│              respondents, pct_in_group                          │
+│ 102 rows                                                    0µs │
+╰────────────────────────────────┬────────────────────────────────╯
+╭─ Projection ───────────────────┴────────────────────────────────╮
+│ Projections: #0, #1, #2, #3, #4, #5                             │
+│ 102 rows                                                    0µs │
+╰────────────────────────────────┬────────────────────────────────╯
+╭─ Window ───────────────────────┴────────────────────────────────╮
+│ Projections:                                                    │
+│ sum(sum(weight)) OVER (PARTITION BY religion_raised, is_answer) │
+│ 102 rows                                                 80.0ms │
+╰────────────────────────────────┬────────────────────────────────╯
+╭─ Hash Group By ────────────────┴────────────────────────────────╮
+│ Groups: #0, #1, #2                                              │
+│ Aggregates: count_star(), sum(#3)                               │
+│ 102 rows                                                500.0ms │
+╰────────────────────────────────┒┎───────────────────────────────╯
+╭─ Projection ───────────────────┚┖───────────────────────────────╮
+│ Projections: religion_raised, prayer_frequency, is_answer,      │
+│              weight                                             │
+│ 875,900 rows                                             20.0ms │
+╰────────────────────────────────┒┎───────────────────────────────╯
+╭─ Hash Join ────────────────────┚┖───────────────────────────────╮
+│ Join Type: INNER                                                │
+│ Conditions:                                                     │
+│ respondent_year_id = respondent_year_id                         │
+│ 875,900 rows                                              1.38s │
+╰────────────────────────────────┰┰───────────────────────────────╯
+                                 ┃┠───────────────────────────────────────────────────────────────┰┒
+╭─ Table Scan ───────────────────┚┖───────────────────────────────╮  ╭─ Hash Join ────────────────┚┖───────────────────────────╮
+│ Table: b.main.fct_appended                                      │  │ Join Type: INNER                                        │
+│ Type: Sequential Scan                                           │  │ Conditions:                                             │
+│ Projections: respondent_year_id, answer_label, is_answer        │  │ respondent_year_id = respondent_year_id                 │
+│ Filters: variable_name = 'relig16'                              │  │ 875,900 rows                                    810.0ms │
+│ Dynamic Filters:                                                │  ╰────────────────────────────┰┰───────────────────────────╯
+│ optional: respondent_year_id IN PRF(respondent_year_id)         │                               ┃┠────────────────────────────────────────────────┰┒
+│ Row Groups Scanned: 129 / 129                                   │  ╭─ Table Scan ───────────────┚┖───────────────────────────╮  ╭─ Table Scan ────┚┖───────────────╮
+│ 875,900 rows                                              1.18s │  │ Table: b.main.fct_appended                              │  │ Table: b.main.dim_copies         │
+╰─────────────────────────────────────────────────────────────────╯  │ Type: Sequential Scan                                   │  │ Type: Sequential Scan            │
+                                                                     │ Projections: respondent_year_id, answer_label,          │  │ Projections: respondent_year_id, │
+                                                                     │              is_answer                                  │  │              weight              │
+                                                                     │ Filters: variable_name = 'pray'                         │  │ Row Groups Scanned: 8 / 8        │
+                                                                     │ Dynamic Filters:                                        │  │ 875,900 rows             120.0ms │
+                                                                     │ optional: respondent_year_id IN PRF(respondent_year_id) │  ╰──────────────────────────────────╯
+                                                                     │ Row Groups Scanned: 129 / 129                           │
+                                                                     │ 875,900 rows                                      1.06s │
+                                                                     ╰─────────────────────────────────────────────────────────╯
+
+
+======================================================================
+3. 100x COPY, AFTER sorting, 15,766,200 rows
+======================================================================
+
+╭─ Summary ──────────╮
+│ Total Time: 0.555s │
+╰────────────────────╯
+╭─ Order By ──────────────────────────────────────────────────────╮
+│ Order By: religion_raised ASC, is_answer DESC, respondents DESC │
+│ 102 rows                                                 10.0ms │
+╰────────────────────────────────┬────────────────────────────────╯
+╭─ Projection ───────────────────┴────────────────────────────────╮
+│ Projections: religion_raised, prayer_frequency, is_answer,      │
+│              respondents, pct_in_group                          │
+│ 102 rows                                                    0µs │
+╰────────────────────────────────┬────────────────────────────────╯
+╭─ Projection ───────────────────┴────────────────────────────────╮
+│ Projections: #0, #1, #2, #3, #4, #5                             │
+│ 102 rows                                                    0µs │
+╰────────────────────────────────┬────────────────────────────────╯
+╭─ Window ───────────────────────┴────────────────────────────────╮
+│ Projections:                                                    │
+│ sum(sum(weight)) OVER (PARTITION BY religion_raised, is_answer) │
+│ 102 rows                                                110.0ms │
+╰────────────────────────────────┬────────────────────────────────╯
+╭─ Hash Group By ────────────────┴────────────────────────────────╮
+│ Groups: #0, #1, #2                                              │
+│ Aggregates: count_star(), sum(#3)                               │
+│ 102 rows                                                330.0ms │
+╰────────────────────────────────┒┎───────────────────────────────╯
+╭─ Projection ───────────────────┚┖───────────────────────────────╮
+│ Projections: religion_raised, prayer_frequency, is_answer,      │
+│              weight                                             │
+│ 875,900 rows                                             10.0ms │
+╰────────────────────────────────┒┎───────────────────────────────╯
+╭─ Hash Join ────────────────────┚┖───────────────────────────────╮
+│ Join Type: INNER                                                │
+│ Conditions:                                                     │
+│ respondent_year_id = respondent_year_id                         │
+│ 875,900 rows                                            870.0ms │
+╰────────────────────────────────┰┰───────────────────────────────╯
+                                 ┃┠───────────────────────────────────────────────────────────────┰┒
+╭─ Table Scan ───────────────────┚┖───────────────────────────────╮  ╭─ Hash Join ────────────────┚┖───────────────────────────╮
+│ Table: b.main.fct_sorted                                        │  │ Join Type: INNER                                        │
+│ Type: Sequential Scan                                           │  │ Conditions:                                             │
+│ Projections: respondent_year_id, answer_label, is_answer        │  │ respondent_year_id = respondent_year_id                 │
+│ Filters: variable_name = 'relig16'                              │  │ 875,900 rows                                    720.0ms │
+│ Dynamic Filters:                                                │  ╰────────────────────────────┰┰───────────────────────────╯
+│ optional: respondent_year_id IN PRF(respondent_year_id)         │                               ┃┠────────────────────────────────────────────────┰┒
+│ Row Groups Scanned: 8 / 129                                     │  ╭─ Table Scan ───────────────┚┖───────────────────────────╮  ╭─ Table Scan ────┚┖───────────────╮
+│ 875,900 rows                                            140.0ms │  │ Table: b.main.fct_sorted                                │  │ Table: b.main.dim_copies         │
+╰─────────────────────────────────────────────────────────────────╯  │ Type: Sequential Scan                                   │  │ Type: Sequential Scan            │
+                                                                     │ Projections: respondent_year_id, answer_label,          │  │ Projections: respondent_year_id, │
+                                                                     │              is_answer                                  │  │              weight              │
+                                                                     │ Filters: variable_name = 'pray'                         │  │ Row Groups Scanned: 8 / 8        │
+                                                                     │ Dynamic Filters:                                        │  │ 875,900 rows             150.0ms │
+                                                                     │ optional: respondent_year_id IN PRF(respondent_year_id) │  ╰──────────────────────────────────╯
+                                                                     │ Row Groups Scanned: 8 / 129                             │
+                                                                     │ 875,900 rows                                    190.0ms │
+                                                                     ╰─────────────────────────────────────────────────────────╯
+

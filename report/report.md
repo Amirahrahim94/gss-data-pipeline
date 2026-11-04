@@ -19,26 +19,29 @@ other lacks. Cut B is above "roughly 5,000" because whole waves were kept: sampl
 wave would break the weights and ballot design. A respondent is a respondent-year
 `(year, id_)`; `id_` restarts each wave, so the waves are separate samples.
 
-| question | variable, and why | answered 2016 / 2018 / 2022 | not applicable or not asked |
+"Answered" is the share of people with a usable response each year. The GSS splits people into
+three groups (ballots a, b and c), and some questions have no answers from a whole group.
+
+| Question | Why this variable? | Answered 2016 / 2018 / 2022 | Limitations and how handled |
 |---|---|---|---|
-| Working status | `wrkstat`: the GSS labour-force item (last week's status) | 99.9 / 99.9 / 99.8% | – |
-| Worked 12+ months, if working | `evwork` with `wrkstat`: the only lifetime-work item ("ever worked as long as one year") | 36 / 35 / 37% | Answered almost only by people not working; working and unemployed people are `.i`. Cannot be answered for workers; Q5 answers it for non-workers |
-| Education level | `educ`: highest year of school, the education item in the extract | 99.7 / 99.9 / 99.4% | Years of schooling, not degree; Q3 groups them into five bands |
-| Industry | `indus10`: industry of current or last job (2010 Census codes, based on NAICS 2007), coded the same way in all three waves | 96 / 96 / 94% | Q3 keeps people working now |
-| Job satisfaction | `satjob`: the GSS work-satisfaction item | 62 / 74 / 70% | Also answered by people keeping house and some unemployed; Q4 keeps people working |
-| Life after death | `postlife`: asks the question directly (yes/no) | 90 / 90 / **45%** | In 2022 about half of every ballot is `.i` |
-| Prayer frequency | `pray`: asks the question directly | 99 / 99 / 99% | "Never" is an answer |
-| Religion raised in | `relig16`: religion at age 16, distinct from current religion (`relig`) | 99 / 99 / 98% | "None" is an answer |
-| Newspaper reading | `news`: how often the respondent reads a newspaper | 66 / 66 / 67% | No answers on ballot c |
-| TV viewing | `tvhours`: hours per day, a number that supports averages | 66 / 66 / 66% | No answers on ballot c; hours, not programme type |
-| Interest in technology | `inttech`: interest in new technologies | 48 / 50 / **0%** | Ballot a and half of b in 2016–18; `.y` in 2022. Interest, not use |
+| Working status | `wrkstat` records whether the person was working, retired, unemployed, studying or in another status last week | 99.9 / 99.9 / 99.8% | Almost everyone has a usable response |
+| Worked for at least one year | `evwork` asks about having worked as long as one year; `wrkstat` gives the employment context | 36 / 35 / 37% | Cannot be answered for current workers: almost none have an answer (2 of 5,205). Their records stay marked not applicable and are not counted as "no" |
+| Education | `educ` records the highest year of school completed | 99.7 / 99.9 / 99.4% | Measures years of schooling, not degrees. Q3 combines them into five bands |
+| Industry | `indus10` identifies the industry of the current or last job | 96 / 96 / 94% | Q3 uses `wrkstat` to keep current workers |
+| Job satisfaction | `satjob` records satisfaction with work | 62 / 74 / 70% | Also answered outside the working group. Q4 keeps workers only |
+| Life after death | `postlife` asks directly whether the person believes in life after death | 90 / 90 / **45%** | In 2022, 1,707 responses are inapplicable and the cause is unconfirmed. They are left out of the YES/NO percentage and reported separately |
+| Prayer frequency | `pray` directly measures how often the person prays | 99 / 99 / 99% | "Never" is a usable response and stays in the distribution |
+| Religion raised in | `relig16` records the religion the person was raised in | 99 / 99 / 98% | "None" is a usable response |
+| Newspaper reading | `news` measures how often the person reads newspapers | 66 / 66 / 67% | No usable answers on ballot c. Percentages use usable responses, with their count shown |
+| TV viewing | `tvhours` measures daily hours watching TV | 66 / 66 / 66% | No usable answers on ballot c. Zero hours is valid; missing values are left out of averages |
+| Technology interest | `inttech` measures interest in technologies | 48 / 50 / **0%** | Answers in 2016 and 2018; unavailable in 2022. Measures interest, not actual use |
 
 Also extracted: `relig`, `attend`, `reliten`, `wwwhr`, `year`, `id_`, `ballot`, the weight
 `wtssnrps`, `age` (89 means "89 or older"), `sex` and `region`.
 
 **Records where a question did not apply or was not asked** are never dropped or recoded.
-Each answer is a row with a `response_type`: `answer`, `inapplicable`, `unavailable_that_year`
-(`.y`), `dont_know`, `no_answer`, `skipped_on_web`, or `not_asked_on_ballot`. All come
+Each answer is a row with a `response_type`: `answer`, `inapplicable` (`.i`),
+`unavailable_that_year` (`.y`), `dont_know`, `no_answer`, `skipped_on_web`, or `not_asked_on_ballot`. All come
 straight from the GSS code except `not_asked_on_ballot`, which is **derived**: `.i` on a
 ballot where nobody answered that year, unverified until checked against the questionnaires.
 Shares use real answers only, with the not-asked counts alongside.
@@ -63,13 +66,12 @@ people who failed to answer.
   with a dot and a letter (`.i:  Inapplicable`, `.d:  Do not Know/Cannot Choose`, `.n`, `.s`,
   `.y`). Real answers never start that way, and literal answers such as "None" or "Never" are
   answers, not missing.
-- **Asked only in some years or ballots:** `news`, `tvhours`, `wwwhr` have no answers on
-  ballot c; `inttech` is answered on ballot a and half of b in 2016–18 and is `.y` in 2022;
-  `postlife` and `reliten` are answered by about half of each 2022 ballot. These are observed
-  patterns, not proof of what each ballot asked.
+- **Asked only in some years or ballots:** `news`, `tvhours`, `wwwhr` and `inttech` have no
+  answers on ballot c; `inttech` is `.y` in 2022; `postlife` and `reliten` are answered by about
+  half of each 2022 ballot. These are observed patterns, not proof of what each ballot asked.
 - **Effect on what can be answered:** Q4 and Q6 rest on two thirds of each wave; technology
   interest cannot be compared with 2022; 2022 belief in life after death rests on 1,576
-  answers, not about 3,200; working respondents cannot be asked about lifetime work.
+  answers, not about 3,200; lifetime work cannot be reported for working respondents.
 
 ## 3. Database and schema
 
@@ -97,14 +99,11 @@ schema, so it is clear where a table comes from and the dbt layers can be rebuil
   number where useful. `ref_codes`, from the export's code list, gives each code's label and
   response type; `ref_variable_validity`, derived from the answers, records which year and
   ballot each question was answered in. Models join to these seeds rather than repeat them.
-- **Missing values:** the source value is kept, `response_type` says what kind it is, and
-  `is_answer` is true only for real answers (§1).
+- **Missing values:** the source value is kept, with `response_type` and `is_answer` (§1).
 - **Naming** (`docs/naming_conventions.md`): lowercase snake_case; `stg_`, `int_`, `dim_`,
   `fct_`, `ref_`, `assert_` and `q<n>_` prefixes; one schema per layer.
-- **Adding a variable:** add it to the extracts and the `answer_variables` list and rebuild
-  the seeds; no model changes.
-- **Weights (bonus):** `wtssnrps` (post-stratified, adjusted for non-response, in all three
-  waves). Shares and means are weighted; group sizes are unweighted counts.
+- **Adding a variable:** extend the extracts and `answer_variables`, rebuild seeds; no model changes.
+- **Weights (bonus):** `wtssnrps`, in all three waves, for shares and means; counts are unweighted.
 
 ## 5. Libraries and frameworks
 
@@ -115,8 +114,7 @@ by digest (Debian, Python 3.12.10) and every package is pinned, so a run next mo
 today's. A no-cache build reproduced the run, tests and results exactly. Rejected: pandas
 (DuckDB does the bulk loading), pytest (unittest needs no extra package), Airflow/Dagster/Prefect
 (three steps in a row need no scheduler; a Python runner does it), Terraform and AWS services
-(the core pipeline needs no cloud; see the production sketch). Orchestration, configuration and
-logs are in the README.
+(the core pipeline needs no cloud; see the production sketch).
 
 ## 6. Results and caveats
 
@@ -124,10 +122,10 @@ Each respondent is counted once: `overlap_audit.sql` reconciles 5,215 + 5,892 �
 8,759, and both marts hold 8,759. Shares and means are weighted; counts are not. No
 standard errors or significance tests were calculated, and associations are not causes.
 
-**Q1. Prayer by religion raised in.** Raised Protestant (4,408 answers): 34% pray several
-times a day, 14% never. Catholic (2,798): 29% once a day, 16% never. No religion (878): 43%
-never. Muslim (67): 68% several times a day. *Trust:* good for the three large groups; groups
-under about 100 are indicative only.
+**Q1. Prayer by religion raised in.** Protestant (4,408 answers): 34% several times a day, 14%
+never. Catholic (2,798): 29% once a day, 16% never. No religion (878): 43% never. Muslim (67):
+68% several times a day. *Trust:* good for the three large groups; groups under about 100 are
+indicative only.
 
 **Q2. Belief in life after death.**
 
@@ -194,10 +192,10 @@ Results are identical. With all threads the join and window dominate, so the gai
 This is a **layout test, not a full-GSS benchmark**: repeated rows compress and process more
 easily than 7,000 varied variables, so the block counts carry over but the timings do not.
 
-**A new extract.** The loader skips unchanged files by fingerprint and loads only the new one,
-in its own transaction. The seeds are rebuilt with `build_reference_seeds.py`; a dbt test fails
-if this is forgotten. dbt then rebuilds every model, cheaper at this size than incremental
-logic. A failed dbt build can leave the marts partly rebuilt; rerunning repairs them.
+**A new extract.** The loader skips unchanged files by fingerprint and loads only the new one.
+The seeds are rebuilt with `build_reference_seeds.py`; a dbt test fails if this is forgotten.
+dbt then rebuilds every model, cheaper at this size than incremental logic. A failed build can
+leave the marts partly rebuilt; rerunning repairs them.
 
 **Not built, as disproportionate here:** incremental models, partitioned storage, a
 scheduler, CI and a realistic full-scale benchmark.
@@ -209,9 +207,8 @@ scheduler, CI and a realistic full-scale benchmark.
 | `.i` means both "not on ballot" and "did not apply" | derived `not_asked_on_ballot` where a whole ballot has no answers | unverified against the questionnaires |
 | 2022 `postlife`, `reliten` half missing within every ballot | kept as `inapplicable`, reported in Q2 | the cause (likely a form split) is not in the extract |
 | `inttech` absent in 2022 | marked `.y`; not compared across waves | no recent answer |
-| "If working, worked 12+ months" not asked of workers | answered for non-workers (Q5) | needs a job-tenure question |
+| "If working, worked 12+ months": almost no answers from workers | reported as unanswerable; nothing guessed | needs a job-tenure question |
 | Education is years, not degree | five bands in Q3 | add `degree` |
-| Separate samples; 2022 mixed mode | descriptive comparisons only (see Q6) | – |
 
 ## 9. Risk and complexity at scale
 
@@ -222,24 +219,21 @@ At the full file, values grow about 3,400× (157,662 → about 530 million).
    Parquet, read in a stream, one wave per file.
 2. **Next: the generated SQL.** The long model writes one `union all` per variable; 7,000 is
    too many. Fix: DuckDB `UNPIVOT`.
-3. **Grows fastest: the long table**, to about 530 million rows: at least 4 GB (the repeated
-   test data gave about 8 bytes per row, a lower bound), too much to rebuild on every run.
-   Fix: incremental models by survey year, kept sorted by variable.
+3. **Grows fastest: the long table**, to about 530 million rows and at least 4 GB, too much to
+   rebuild on every run. Fix: incremental models by survey year, kept sorted by variable.
 4. **Seeds outgrow seeds:** `ref_codes` from 637 rows to about 200,000. Fix: load code
    metadata as a raw table.
-5. **More sources:** each brings its own codes, missing values and weights, and comparison needs
-   a mapping per shared concept per source (5 sources × 50 concepts = 250). The single-file
-   database allows one writer at a time. Fix: one staging model per source into the same long
-   shape, and a tested concept-mapping table (`docs/production_sketch.md`).
+5. **More sources:** each brings its own codes and weights, and comparison needs a mapping per
+   shared concept per source (5 × 50 = 250). The single-file database allows one writer at a time.
+   Fix: one staging model per source and a tested concept-mapping table (production sketch).
 
 ## 10. Assumptions and divergence
 
 Assumptions: `(year, id_)` identifies a respondent-year; shared respondent-years are identical
 (checked: 0 conflicts); only `.y` means "not in that year"; waves are separate samples.
-Divergences from the design note (reasons in its section 8): no wide view for the six questions;
-a validity seed derived from the data; the derived `not_asked_on_ballot` type; demographics and
-work status in `dim_respondent`; weighted shares; a coverage mart; `fct_response` sorted by
-variable; Docker packaging.
+Divergences from the design note (reasons in its section 8): no wide view; a validity seed
+derived from the data and the `not_asked_on_ballot` type; work status in `dim_respondent`;
+weighted shares; a coverage mart; `fct_response` sorted by variable; Docker.
 
 ## 11. AI use and human oversight
 
@@ -265,25 +259,49 @@ questionnaire routing rule; the unresolved eligibility limitations are in sectio
 
 About 16 hours, twice the 8 suggested: much of it went on understanding the requirements,
 learning the GSS, the Data Explorer and the tools, and understanding the code. With more time:
-verify ballot and form routing against the questionnaires; add `degree` and a job-tenure
-question; CI running `dbt build` on every commit. `docs/production_sketch.md` covers AWS and
-other surveys (bonus).
+verify routing against the questionnaires; add `degree` and a job-tenure question; add CI.
+`docs/production_sketch.md` covers AWS and other surveys (bonus).
 
 ---
 
-## Appendix A. Q1 query plan (DuckDB 2.0, `EXPLAIN ANALYZE`)
+## Appendix A. Q1 query plan comparison
 
-```
-Order By (religion_raised, is_answer, respondents)
-└─ Window (share within religion_raised and is_answer)
-   └─ Hash Group By (religion_raised, prayer_frequency, is_answer)
-      └─ Hash Join (respondent_year_id)
-         ├─ Table Scan fct_response     Filters: variable_name = 'pray'
-         └─ Hash Join (respondent_year_id)
-            ├─ Table Scan fct_response     Filters: variable_name = 'relig16'
-            └─ Table Scan dim_respondent
-```
+**Query:** prayer frequency by religion raised in (`q1_prayer_by_religion_raised.sql`).
 
-Warehouse, after the change: total 0.017 s; blocks read 1 of 2 (`pray`), 1 of 2 (`relig16`),
-1 of 1 (`dim_respondent`). 100× copy: 128–129 of 129 per `fct_response` scan before, 8 of 129
-after. Rerun with `source/pipeline/benchmark_sort_order.py` (README).
+**Purpose:** check whether sorting the response table helps DuckDB read less data.
+
+### What the query does
+
+The steps run in this order (DuckDB 2.0, `EXPLAIN ANALYZE`):
+
+| Step | Purpose |
+|---|---|
+| Table scans | Read prayer and religion-raised responses from `fct_response`, and respondents from `dim_respondent` |
+| Hash joins | Match records using `respondent_year_id` |
+| Group by | Count responses by religion raised and prayer frequency |
+| Window calculation | Calculate percentages within each religion and answer-status group |
+| Sort | Arrange the final output |
+
+### The change and the result
+
+`fct_response` was sorted by `variable_name, survey_year`, so answers to the same question are
+stored together. DuckDB can then skip blocks (its "row groups") that do not hold the requested
+variable.
+
+On the real data (157,662 rows), each `fct_response` scan read both blocks before the change and
+one of two after it. The query takes under 0.02 seconds, so the data is too small to show a
+reliable time difference.
+
+The larger test used a 100× copy of the data (15.8 million rows):
+
+| Measurement | Before sorting | After sorting |
+|---|---:|---:|
+| Blocks read per `fct_response` scan | 128–129 of 129 | 8 of 129 |
+
+The query returned identical results in both layouts. The copy repeats the same rows, so this
+shows the effect of the layout, not performance on the full, more varied GSS.
+
+### Evidence
+
+Rerun the comparison with `python source/pipeline/benchmark_sort_order.py`. The full
+before-and-after plans are in `docs/q1_query_plan.txt`.
